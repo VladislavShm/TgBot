@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  giraffe-postgres:
+    container_name: giraffe-postgres
+    image: postgres:14.2
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: giraffes
+      PGDATA: /data/postgres
+    volumes:
+      - docker-giraffes:/data/postgres
+    ports:
+      - "5432:5432"
+
+volumes:
+  docker-giraffes:

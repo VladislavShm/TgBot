@@ -1,0 +1,31 @@
+datasource:
+  url: jdbc:postgresql://localhost:5432/giraffes
+  username: postgres
+  password: postgres
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    change-log: classpath:db/changelog-master.xml
+
+server:
+  port: 5000
+
+tg-bot:
+  botUserName: "@hb_tg_bot"
+  botToken: 1935993185:AAGqWJNUDAZn_Tyb4uiEEz89Ww02aPTVbQU
+  webHookPath: https://386e-82-131-107-236.ngrok.io
+
+purchase:
+  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  price: 8000000000
+
+logging:
+  level:
+    com:
+      giraffes:
+        tgbot: WARN
