@@ -89,7 +89,7 @@ public class InitialScreen implements ScreenProcessor {
 
             tgSender.execute(
                     SendMessage.builder()
-                            .text("Ваша персональная ссылка: \n\n\nhttps://t.me/grf_nft_test_bot?start=" + tgUser.getId())
+                            .text("Ваша персональная ссылка: \n\n\nhttps://t.me/Giraffe_capital_bot?start=" + tgUser.getId())
                             .chatId(chatId)
                             .replyMarkup(
                                     ReplyKeyboardMarkup.builder()
