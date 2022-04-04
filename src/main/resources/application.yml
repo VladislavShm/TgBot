@@ -16,9 +16,9 @@ server:
   port: 5000
 
 tg-bot:
-  botUserName: "@hb_tg_bot"
-  botToken: 1935993185:AAGqWJNUDAZn_Tyb4uiEEz89Ww02aPTVbQU
-  webHookPath: https://386e-82-131-107-236.ngrok.io
+  botUserName: "@grf_nft_test_bot"
+  botToken: 5189688729:AAFN0jqTcioO5PendAKAilLdLK66VwUiSS8
+  webHookPath: https://9148-82-131-107-236.ngrok.io
 
 purchase:
   wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
