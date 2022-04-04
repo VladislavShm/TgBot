@@ -5,18 +5,21 @@ import com.giraffes.tgbot.repository.TgUserRepository;
 import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -24,10 +27,13 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class InitialScreen implements ScreenProcessor {
-    private final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
     private final TgUserRepository tgUserRepository;
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
+
+    @Autowired
+    private AbsSender tgSender;
 
     @Override
     public boolean shouldProcessIncomingMessage(Message message, String text) {
@@ -35,38 +41,92 @@ public class InitialScreen implements ScreenProcessor {
     }
 
     @Override
+    @SneakyThrows
     public BotApiMethod<?> processIncomingMessage(String text, String chatId, Message message) {
-//        return SendMessage.builder()
-//                .text("456")
-//                .chatId(chatId)
-//                .replyMarkup(ReplyKeyboardMarkup.builder().keyboardRow(new KeyboardRow(Arrays.asList(
-//                        new KeyboardButton("Пригласить"),
-//                        new KeyboardButton("Купить"),
-//                        new KeyboardButton("Инвайт инфо")
-//                ))).build()).build();
-
         TgUser tgUser = tgUserService.getCurrentUser();
+
+        if ("Купить".equals(text)) {
+            tgSender.execute(
+                    SendMessage.builder()
+                            .text("Ссылка для покупки NFT: " + purchaseService.createLink(tgUser))
+                            .chatId(chatId)
+                            .replyMarkup(
+                                    ReplyKeyboardMarkup.builder()
+                                            .keyboardRow(
+                                                    new KeyboardRow(
+                                                            Arrays.asList(
+                                                                    new KeyboardButton("Купить"),
+                                                                    new KeyboardButton("Инвайт инфо")
+                                                            )
+                                                    )
+                                            )
+                                            .resizeKeyboard(true)
+                                            .build()
+                            ).build()
+            );
+
+            return null;
+        } else if ("Инвайт инфо".equals(text)) {
+            tgSender.execute(
+                    SendMessage.builder()
+                            .text("На данный момент Вы пригласили <i><b>" + tgUserRepository.invitedCount(tgUser) + "</b></i> человек")
+                            .parseMode("html")
+                            .chatId(chatId)
+                            .replyMarkup(
+                                    ReplyKeyboardMarkup.builder()
+                                            .keyboardRow(
+                                                    new KeyboardRow(
+                                                            Arrays.asList(
+                                                                    new KeyboardButton("Купить"),
+                                                                    new KeyboardButton("Инвайт инфо")
+                                                            )
+                                                    )
+                                            )
+                                            .resizeKeyboard(true)
+                                            .build()
+                            ).build()
+            );
+
+            tgSender.execute(
+                    SendMessage.builder()
+                            .text("Ваша персональная ссылка: \n\n\nhttps://t.me/grf_nft_test_bot?start=" + tgUser.getId())
+                            .chatId(chatId)
+                            .replyMarkup(
+                                    ReplyKeyboardMarkup.builder()
+                                            .keyboardRow(
+                                                    new KeyboardRow(
+                                                            Arrays.asList(
+                                                                    new KeyboardButton("Купить"),
+                                                                    new KeyboardButton("Инвайт инфо")
+                                                            )
+                                                    )
+                                            )
+                                            .resizeKeyboard(true)
+                                            .build()
+                            ).build()
+            );
+
+            return null;
+        }
 
         checkInvitation(text, tgUser);
 
         return SendMessage.builder()
+                .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)")
                 .chatId(chatId)
-                .text("Giraffes Capital\nНа данный момент Вы пригласили `" + tgUserRepository.invitedCount(tgUser) + "` человек")
                 .replyMarkup(
-                        InlineKeyboardMarkup.builder()
-                                .keyboard(Collections.singletonList(Arrays.asList(
-                                                InlineKeyboardButton.builder()
-                                                        .switchInlineQuery("Ваша персональная ссылка: \n\n\nhttps://t.me/Giraffe_capital_bot?start=" + tgUser.getId())
-                                                        .text("Пригласить")
-                                                        .build(),
-                                                InlineKeyboardButton.builder()
-                                                        .url(purchaseService.createLink(tgUser))
-                                                        .text("Купить")
-                                                        .build()
-                                        ))
+                        ReplyKeyboardMarkup.builder()
+                                .keyboardRow(
+                                        new KeyboardRow(
+                                                Arrays.asList(
+                                                        new KeyboardButton("Купить"),
+                                                        new KeyboardButton("Инвайт инфо")
+                                                )
+                                        )
                                 )
-                                .build())
-                .build();
+                                .resizeKeyboard(true)
+                                .build()
+                ).build();
     }
 
     private void checkInvitation(String text, TgUser tgUser) {

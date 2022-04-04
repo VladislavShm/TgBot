@@ -5,6 +5,7 @@ import com.giraffes.tgbot.utils.CollectorsUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -20,8 +21,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class IncomingUpdateProcessor {
-    private final List<ScreenProcessor> screenProcessors;
     private final TgUserService tgUserService;
+
+    @Autowired
+    private List<ScreenProcessor> screenProcessors;
 
     @SneakyThrows
     @Transactional
@@ -63,9 +66,9 @@ public class IncomingUpdateProcessor {
             return update.getMessage().getChatId().toString();
         } else if (update.hasCallbackQuery()) {
             return update.getCallbackQuery().getMessage().getChatId().toString();
-        } else {
-            throw new RuntimeException("Can not determine chat id.");
         }
+
+        throw new RuntimeException("Can not determine chat id.");
     }
 
     private BotApiMethod<? extends Serializable> processIncomingMessage(Update update, String chatId) {
@@ -76,7 +79,7 @@ public class IncomingUpdateProcessor {
         return screenProcessors.stream().filter(sp -> sp.shouldProcessIncomingMessage(message, text))
                 .collect(CollectorsUtils.zeroOrOne())
                 .map(sp -> sp.processIncomingMessage(text, chatId, message))
-                .orElseThrow(() -> new RuntimeException("Can not determine message processor"));
+                .orElse(null);
     }
 
     private BotApiMethod<? extends Serializable> processIncomingAction(Update update, String chatId) {
