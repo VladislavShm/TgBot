@@ -21,11 +21,5 @@ tg-bot:
 #  webHookPath: https://9148-82-131-107-236.ngrok.io
 
 purchase:
-  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  wallet: EQCFIhRAg8uz7x46h7fvRxilq3IxtMDDhj3LecOjjW4Wx-Kf
   price: 8000000000
-
-logging:
-  level:
-    com:
-      giraffes:
-        tgbot: WARN
