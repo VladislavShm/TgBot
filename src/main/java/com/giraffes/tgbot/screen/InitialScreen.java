@@ -17,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -46,66 +47,13 @@ public class InitialScreen implements ScreenProcessor {
         TgUser tgUser = tgUserService.getCurrentUser();
 
         if ("Купить".equals(text)) {
-            tgSender.execute(
-                    SendMessage.builder()
-                            .text("Ссылка для покупки NFT: " + purchaseService.createLink(tgUser))
-                            .chatId(chatId)
-                            .replyMarkup(
-                                    ReplyKeyboardMarkup.builder()
-                                            .keyboardRow(
-                                                    new KeyboardRow(
-                                                            Arrays.asList(
-                                                                    new KeyboardButton("Купить"),
-                                                                    new KeyboardButton("Инвайт инфо")
-                                                            )
-                                                    )
-                                            )
-                                            .resizeKeyboard(true)
-                                            .build()
-                            ).build()
-            );
-
+            sendPurchaseLink(chatId, tgUser);
             return null;
         } else if ("Инвайт инфо".equals(text)) {
-            tgSender.execute(
-                    SendMessage.builder()
-                            .text("На данный момент Вы пригласили <i><b>" + tgUserRepository.invitedCount(tgUser) + "</b></i> человек")
-                            .parseMode("html")
-                            .chatId(chatId)
-                            .replyMarkup(
-                                    ReplyKeyboardMarkup.builder()
-                                            .keyboardRow(
-                                                    new KeyboardRow(
-                                                            Arrays.asList(
-                                                                    new KeyboardButton("Купить"),
-                                                                    new KeyboardButton("Инвайт инфо")
-                                                            )
-                                                    )
-                                            )
-                                            .resizeKeyboard(true)
-                                            .build()
-                            ).build()
-            );
-
-            tgSender.execute(
-                    SendMessage.builder()
-                            .text("Ваша персональная ссылка: \n\n\nhttps://t.me/Giraffe_capital_bot?start=" + tgUser.getId())
-                            .chatId(chatId)
-                            .replyMarkup(
-                                    ReplyKeyboardMarkup.builder()
-                                            .keyboardRow(
-                                                    new KeyboardRow(
-                                                            Arrays.asList(
-                                                                    new KeyboardButton("Купить"),
-                                                                    new KeyboardButton("Инвайт инфо")
-                                                            )
-                                                    )
-                                            )
-                                            .resizeKeyboard(true)
-                                            .build()
-                            ).build()
-            );
-
+            sendInviteInfo(chatId, tgUser);
+            return null;
+        } else if ("Мои жирафы".equals(text)) {
+            sendMyGiraffesInfo(chatId, tgUser);
             return null;
         }
 
@@ -114,19 +62,65 @@ public class InitialScreen implements ScreenProcessor {
         return SendMessage.builder()
                 .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)")
                 .chatId(chatId)
-                .replyMarkup(
-                        ReplyKeyboardMarkup.builder()
-                                .keyboardRow(
-                                        new KeyboardRow(
-                                                Arrays.asList(
-                                                        new KeyboardButton("Купить"),
-                                                        new KeyboardButton("Инвайт инфо")
-                                                )
-                                        )
+                .replyMarkup(createButtons())
+                .build();
+    }
+
+    private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {
+        tgSender.execute(
+                SendMessage.builder()
+                        .text("На данный момент Вы приобрели <i><b>" + purchaseService.purchasesCount(tgUser) + "</b></i> жирафов.\n\n" +
+                                "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами.\n" +
+                                "Как правило, проведение транзакции и олучение данных о Вашем переводе средств занимают некоторое время.")
+                        .parseMode("html")
+                        .chatId(chatId)
+                        .replyMarkup(createButtons())
+                        .build()
+        );
+    }
+
+    private void sendInviteInfo(String chatId, TgUser tgUser) throws TelegramApiException {
+        tgSender.execute(
+                SendMessage.builder()
+                        .text("На данный момент Вы пригласили <i><b>" + tgUserRepository.invitedCount(tgUser) + "</b></i> человек")
+                        .parseMode("html")
+                        .chatId(chatId)
+                        .replyMarkup(createButtons())
+                        .build()
+        );
+
+        tgSender.execute(
+                SendMessage.builder()
+                        .text("Ваша персональная ссылка: \n\n\nhttps://t.me/Giraffe_capital_bot?start=" + tgUser.getId())
+                        .chatId(chatId)
+                        .replyMarkup(createButtons())
+                        .build()
+        );
+    }
+
+    private void sendPurchaseLink(String chatId, TgUser tgUser) throws TelegramApiException {
+        tgSender.execute(
+                SendMessage.builder()
+                        .text("Ссылка для покупки NFT: " + purchaseService.createLink(tgUser))
+                        .chatId(chatId)
+                        .replyMarkup(createButtons())
+                        .build()
+        );
+    }
+
+    private ReplyKeyboardMarkup createButtons() {
+        return ReplyKeyboardMarkup.builder()
+                .keyboardRow(
+                        new KeyboardRow(
+                                Arrays.asList(
+                                        new KeyboardButton("Купить"),
+                                        new KeyboardButton("Инвайт инфо"),
+                                        new KeyboardButton("Мои жирафы")
                                 )
-                                .resizeKeyboard(true)
-                                .build()
-                ).build();
+                        )
+                )
+                .resizeKeyboard(true)
+                .build();
     }
 
     private void checkInvitation(String text, TgUser tgUser) {
