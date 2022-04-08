@@ -47,6 +47,10 @@ public class TgUserService {
         return tgUser;
     }
 
+    public TgUser findByUsername(String username) {
+        return this.tgUserRepository.findByName(username);
+    }
+
     public boolean isUserJustCreated() {
         return USER_JUST_CREATED.get();
     }

@@ -5,5 +5,6 @@
    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
 
     <include file="db/changelog/tg-user-creation.xml"/>
+    <include file="db/changelog/purchase-creation.xml"/>
 
 </databaseChangeLog>
