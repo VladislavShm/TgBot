@@ -70,8 +70,8 @@ public class InitialScreen implements ScreenProcessor {
         tgSender.execute(
                 SendMessage.builder()
                         .text("На данный момент Вы приобрели <i><b>" + purchaseService.purchasesCount(tgUser) + "</b></i> жирафов.\n\n" +
-                                "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами.\n" +
-                                "Как правило, проведение транзакции и олучение данных о Вашем переводе средств занимают некоторое время.")
+                                "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe \n" +
+                                "Как правило, проведение транзакции и получение данных о Вашем переводе средств занимают некоторое время.")
                         .parseMode("html")
                         .chatId(chatId)
                         .replyMarkup(createButtons())
