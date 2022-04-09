@@ -4,7 +4,7 @@ datasource:
   password: postgres
 
 tg-bot:
-  botUserName: "@grf_nft_test_bot"
+  botUserName: grf_nft_test_bot
   botToken: 5189688729:AAFN0jqTcioO5PendAKAilLdLK66VwUiSS8
 
 purchase:

@@ -18,6 +18,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.Serializable;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -28,6 +29,7 @@ import static com.giraffes.tgbot.utils.TgUiUtils.createBaseButtons;
 @RequiredArgsConstructor
 public class InitialScreen implements ScreenProcessor {
     private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
+
     private final TgUserRepository tgUserRepository;
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
@@ -95,9 +97,10 @@ public class InitialScreen implements ScreenProcessor {
                         .build()
         );
 
+        String message = "Ваша персональная ссылка: \n\n" + tgUserService.createInvitationLink(tgUser);
         tgSender.execute(
                 SendMessage.builder()
-                        .text("Ваша персональная ссылка: \n\n\nhttps://t.me/Giraffe_capital_bot?start=" + tgUser.getId())
+                        .text(message)
                         .chatId(chatId)
                         .replyMarkup(createBaseButtons())
                         .build()
@@ -124,8 +127,8 @@ public class InitialScreen implements ScreenProcessor {
             return;
         }
 
-        String inviterId = text.substring("/start".length()).trim();
-        if (!NUMBER_PATTERN.matcher(inviterId).find()) {
+        Long inviterId = extractInviterId(text);
+        if (inviterId == null) {
             log.warn("Unexpected /start parameter: {} {}", text, tgUser);
             return;
         }
@@ -135,13 +138,42 @@ public class InitialScreen implements ScreenProcessor {
             return;
         }
 
-        Optional<TgUser> inviter = tgUserRepository.findById(Long.valueOf(inviterId));
+        if (inviterId.equals(tgUser.getId())) {
+            log.warn("Attempt to invite yourself");
+            return;
+        }
+
+        Optional<TgUser> inviter = tgUserRepository.findById(inviterId);
         if (!inviter.isPresent()) {
             log.info("Invalid inviter ID: {}", inviterId);
             return;
         }
 
         tgUser.setInvitedBy(inviter.get());
+    }
+
+    private Long extractInviterId(String text) {
+        String rawInviterId = text.substring("/start".length()).trim();
+        if (NUMBER_PATTERN.matcher(rawInviterId).find()) {
+            return Long.parseLong(rawInviterId);
+        }
+
+        try {
+            byte[] decodedBytes = Base64.getDecoder().decode(rawInviterId);
+            String decodedString = new String(decodedBytes);
+
+            if (decodedString.startsWith("base64")) {
+                rawInviterId = decodedString.substring("base64".length());
+            }
+
+            if (NUMBER_PATTERN.matcher(rawInviterId).find()) {
+                return Long.parseLong(rawInviterId);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+
+        return null;
     }
 
     @Override
