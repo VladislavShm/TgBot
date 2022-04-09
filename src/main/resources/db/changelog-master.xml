@@ -6,5 +6,6 @@
 
     <include file="db/changelog/tg-user-creation.xml"/>
     <include file="db/changelog/purchase-creation.xml"/>
+    <include file="db/changelog/gift-creation.xml"/>
 
 </databaseChangeLog>
