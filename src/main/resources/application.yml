@@ -1,8 +1,3 @@
-datasource:
-  url: jdbc:postgresql://localhost:5432/giraffes
-  username: postgres
-  password: postgres
-
 spring:
   jpa:
     properties:
@@ -16,10 +11,15 @@ server:
   port: 5000
 
 tg-bot:
-  botUserName: "@Giraffe_capital_bot"
-  botToken: 5280348335:AAEnQ2cZLVNSUKJvVZx_Ro9EAYNXDE0AMFY
-#  webHookPath: https://9148-82-131-107-236.ngrok.io
+  botUserName: ${BOT_USER_NAME}
+  botToken: ${BOT_TOKEN}
 
 purchase:
-  wallet: EQCFIhRAg8uz7x46h7fvRxilq3IxtMDDhj3LecOjjW4Wx-Kf
-  price: 8000000000
+  wallet: ${WALLET_ADDRESS}
+  price: ${BASE_NFT_PRICE}
+
+logging:
+  level:
+    com:
+      giraffes:
+        tgbot: ${LOGGING_APP_LEVEL}

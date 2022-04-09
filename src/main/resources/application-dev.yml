@@ -1,0 +1,18 @@
+datasource:
+  url: jdbc:postgresql://localhost:5432/giraffes
+  username: postgres
+  password: postgres
+
+tg-bot:
+  botUserName: "@grf_nft_test_bot"
+  botToken: 5189688729:AAFN0jqTcioO5PendAKAilLdLK66VwUiSS8
+
+purchase:
+  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  price: 8000000000
+
+logging:
+  level:
+    com:
+      giraffes:
+        tgbot: INFO
