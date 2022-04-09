@@ -7,5 +7,7 @@
     <include file="db/changelog/tg-user-creation.xml"/>
     <include file="db/changelog/purchase-creation.xml"/>
     <include file="db/changelog/gift-creation.xml"/>
+    <include file="db/changelog/purchase-datetime-to-timestamp.xml"/>
+    <include file="db/changelog/add-create-update-purchase-timestamps.xml"/>
 
 </databaseChangeLog>

@@ -11,6 +11,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,9 +41,19 @@ public class PurchaseService {
                 continue;
             }
 
+            LocalDateTime datetime;
+            try {
+                datetime = Instant.ofEpochMilli(transaction.getDatetime())
+                        .atZone(ZoneOffset.UTC)
+                        .toLocalDateTime();
+            } catch (Exception e) {
+                log.error("Can't parse incoming datetime. ", e);
+                continue;
+            }
+
             Purchase purchase = new Purchase();
             purchase.setAmount(transaction.getValue());
-            purchase.setDatetime(transaction.getDatetime());
+            purchase.setDatetime(datetime);
             purchase.setBuyerWallet(transaction.getSender());
             purchase.setTransactionId(transaction.getTransactionId());
             purchase.setUsername(transaction.getUsername());
