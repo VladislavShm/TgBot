@@ -2,6 +2,7 @@ package com.giraffes.tgbot.screen;
 
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.repository.TgUserRepository;
+import com.giraffes.tgbot.service.GiftService;
 import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import lombok.RequiredArgsConstructor;
@@ -13,16 +14,14 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Pattern;
+
+import static com.giraffes.tgbot.utils.TgUiUtils.createBaseButtons;
 
 @Slf4j
 @Service
@@ -32,6 +31,7 @@ public class InitialScreen implements ScreenProcessor {
     private final TgUserRepository tgUserRepository;
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
+    private final GiftService giftService;
 
     @Autowired
     private AbsSender tgSender;
@@ -62,19 +62,25 @@ public class InitialScreen implements ScreenProcessor {
         return SendMessage.builder()
                 .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)")
                 .chatId(chatId)
-                .replyMarkup(createButtons())
+                .replyMarkup(createBaseButtons())
                 .build();
     }
 
     private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {
+        Integer giftsCount = giftService.giftsCount(tgUser);
+        String message = String.format(
+                "На данный момент Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
+                        "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe\n" +
+                        "Как правило, проведение транзакции и получение данных о Вашем переводе средств занимают некоторое время.",
+                purchaseService.purchasesCount(tgUser), giftsCount > 0 ? " и выиграли <i><b>" + giftsCount + "</b></i>" : ""
+        );
+
         tgSender.execute(
                 SendMessage.builder()
-                        .text("На данный момент Вы приобрели <i><b>" + purchaseService.purchasesCount(tgUser) + "</b></i> жирафов.\n\n" +
-                                "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe \n" +
-                                "Как правило, проведение транзакции и получение данных о Вашем переводе средств занимают некоторое время.")
+                        .text(message)
                         .parseMode("html")
                         .chatId(chatId)
-                        .replyMarkup(createButtons())
+                        .replyMarkup(createBaseButtons())
                         .build()
         );
     }
@@ -85,7 +91,7 @@ public class InitialScreen implements ScreenProcessor {
                         .text("На данный момент Вы пригласили <i><b>" + tgUserRepository.invitedCount(tgUser) + "</b></i> человек")
                         .parseMode("html")
                         .chatId(chatId)
-                        .replyMarkup(createButtons())
+                        .replyMarkup(createBaseButtons())
                         .build()
         );
 
@@ -93,7 +99,7 @@ public class InitialScreen implements ScreenProcessor {
                 SendMessage.builder()
                         .text("Ваша персональная ссылка: \n\n\nhttps://t.me/Giraffe_capital_bot?start=" + tgUser.getId())
                         .chatId(chatId)
-                        .replyMarkup(createButtons())
+                        .replyMarkup(createBaseButtons())
                         .build()
         );
     }
@@ -103,24 +109,9 @@ public class InitialScreen implements ScreenProcessor {
                 SendMessage.builder()
                         .text("Ссылка для покупки NFT: " + purchaseService.createLink(tgUser))
                         .chatId(chatId)
-                        .replyMarkup(createButtons())
+                        .replyMarkup(createBaseButtons())
                         .build()
         );
-    }
-
-    private ReplyKeyboardMarkup createButtons() {
-        return ReplyKeyboardMarkup.builder()
-                .keyboardRow(
-                        new KeyboardRow(
-                                Arrays.asList(
-                                        new KeyboardButton("Купить"),
-                                        new KeyboardButton("Инвайт инфо"),
-                                        new KeyboardButton("Мои жирафы")
-                                )
-                        )
-                )
-                .resizeKeyboard(true)
-                .build();
     }
 
     private void checkInvitation(String text, TgUser tgUser) {
