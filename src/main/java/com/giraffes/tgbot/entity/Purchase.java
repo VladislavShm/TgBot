@@ -2,8 +2,11 @@ package com.giraffes.tgbot.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -18,7 +21,7 @@ public class Purchase {
     private String buyerWallet;
 
     @Column
-    private Integer datetime;
+    private LocalDateTime datetime;
 
     @Column
     private String amount;
@@ -31,4 +34,10 @@ public class Purchase {
 
     @Column
     private boolean approved;
+
+    @CreationTimestamp
+    private LocalDateTime createDateTime;
+
+    @UpdateTimestamp
+    private LocalDateTime updateDateTime;
 }
