@@ -27,7 +27,7 @@ public class TgUserService {
     }
 
     public void authenticateUser(User user, String chatId) {
-        TgUser tgUser = tgUserRepository.findByName(user.getUserName());
+        TgUser tgUser = tgUserRepository.findByChatId(chatId);
         if (tgUser == null) {
             tgUser = createUser(
                     user.getUserName(),
@@ -60,6 +60,10 @@ public class TgUserService {
 
     public TgUser findByUsername(String username) {
         return this.tgUserRepository.findByName(username);
+    }
+
+    public TgUser findByChatId(String chatId) {
+        return this.tgUserRepository.findByChatId(chatId);
     }
 
     public boolean isUserJustCreated() {

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1649564644010-1" author="giraffe">
+        <addColumn tableName="purchase">
+            <column name="chat_id" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1649564644010-2" author="giraffe">
+        <sql>
+            update purchase p
+            set chat_id = (select tgu.chat_id from tg_user tgu where tgu.name = p.username)
+            where username is not null
+        </sql>
+    </changeSet>
+    <changeSet id="1649564644010-4" author="giraffe">
+        <dropColumn columnName="username" tableName="purchase"/>
+    </changeSet>
+
+</databaseChangeLog>

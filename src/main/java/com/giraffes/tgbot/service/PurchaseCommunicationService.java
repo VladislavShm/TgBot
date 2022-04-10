@@ -20,16 +20,16 @@ public class PurchaseCommunicationService {
     private final AbsSender tgSender;
 
     @SneakyThrows
-    public void sendPurchaseNotification(String username) {
-        TgUser tgUser = tgUserService.findByUsername(username);
+    public void sendPurchaseNotification(String chatId) {
+        TgUser tgUser = tgUserService.findByChatId(chatId);
         if (tgUser == null) {
-            log.warn("User {} wasn't found for sending the notification", username);
+            log.warn("User {} wasn't found for sending a notification", chatId);
             return;
         }
 
         tgSender.execute(
                 SendMessage.builder()
-                        .text("Спасибо за покупку! На данный момент у вас имеется " + purchaseRepository.approvedPurchasesCount(username) + " жирафов")
+                        .text("Спасибо за покупку! На данный момент у вас имеется " + purchaseRepository.approvedPurchasesCount(chatId) + " жирафов")
                         .parseMode("html")
                         .chatId(tgUser.getChatId())
                         .replyMarkup(createBaseButtons())

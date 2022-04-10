@@ -25,8 +25,8 @@ public class GiftService {
         Gift gift = new Gift();
         gift.setAmount(giftDto.getAmount());
         gift.setUser(
-                Optional.ofNullable(tgUserService.findByUsername(giftDto.getUsername()))
-                        .orElseThrow(() -> new RuntimeException("User " + giftDto.getUsername() + " not found"))
+                Optional.ofNullable(tgUserService.findByChatId(giftDto.getChatId()))
+                        .orElseThrow(() -> new RuntimeException("User " + giftDto.getChatId() + " not found"))
         );
         gift.setReason(giftDto.getReason());
         gift.setWallet(giftDto.getWallet());
@@ -38,8 +38,8 @@ public class GiftService {
         Gift gift = giftRepository.getById(giftDto.getGiftId());
         gift.setAmount(giftDto.getAmount());
         gift.setUser(
-                Optional.ofNullable(tgUserService.findByUsername(giftDto.getUsername()))
-                        .orElseThrow(() -> new RuntimeException("User " + giftDto.getUsername() + " not found"))
+                Optional.ofNullable(tgUserService.findByChatId(giftDto.getChatId()))
+                        .orElseThrow(() -> new RuntimeException("User " + giftDto.getChatId() + " not found"))
         );
         gift.setReason(giftDto.getReason());
         gift.setWallet(giftDto.getWallet());

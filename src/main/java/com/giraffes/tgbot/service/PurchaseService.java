@@ -23,12 +23,27 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class PurchaseService {
+    private final TgUserService tgUserService;
     private final PurchaseProperties purchaseProperties;
     private final PurchaseRepository purchaseRepository;
     private final PurchaseCommunicationService purchaseCommunicationService;
 
-    public String createLink(TgUser tgUser) {
-        return String.format("ton://transfer/%s?amount=%s&text=login=%s", purchaseProperties.getWallet(), purchaseProperties.getPrice(), tgUser.getName());
+    public String createPurchaseMessage(TgUser tgUser) {
+        return String.format(
+                "На данный момент стоимость NFT для Вас составляет: %s TON.\n\n" +
+                        "Для покупки NFT Вам необходимо отправить указанную сумму на кошелек: \n%s\n\n" +
+                        "Чтобы получить уведомление об успешном совершении сделки, пожалуйста, укажите в описании перевода комментарий: \nid=%s\n\n" +
+                        "В случае, если указать комментарий не представляется возможным, Вы можете сообщить о покупке нам напрямую - @GhostOfGiraffe\n\n\n" +
+                        "Или же Вы можете воспользоваться готовой ссылкой: %s",
+                Long.parseLong(purchaseProperties.getPrice()) / 1000000000,
+                purchaseProperties.getWallet(),
+                tgUser.getChatId(),
+                createLink(tgUser)
+        );
+    }
+
+    private String createLink(TgUser tgUser) {
+        return String.format("ton://transfer/%s?amount=%s&text=id=%s", purchaseProperties.getWallet(), purchaseProperties.getPrice(), tgUser.getChatId());
     }
 
     @Transactional
@@ -43,12 +58,20 @@ public class PurchaseService {
 
             LocalDateTime datetime;
             try {
-                datetime = Instant.ofEpochMilli(transaction.getDatetime())
+                datetime = Instant.ofEpochSecond(transaction.getDatetime())
                         .atZone(ZoneOffset.UTC)
                         .toLocalDateTime();
             } catch (Exception e) {
-                log.error("Can't parse incoming datetime. ", e);
+                log.error("Can't parse incoming datetime {} for {}. ", transaction.getDatetime(), transaction.getTransactionId(), e);
                 continue;
+            }
+
+            String chatId = transaction.getChatId();
+            if (StringUtils.isEmpty(chatId) && StringUtils.isNotEmpty(transaction.getUsername())) {
+                TgUser buyer = tgUserService.findByUsername(transaction.getUsername());
+                if (buyer != null) {
+                    chatId = buyer.getChatId();
+                }
             }
 
             Purchase purchase = new Purchase();
@@ -56,13 +79,13 @@ public class PurchaseService {
             purchase.setDatetime(datetime);
             purchase.setBuyerWallet(transaction.getSender());
             purchase.setTransactionId(transaction.getTransactionId());
-            purchase.setUsername(transaction.getUsername());
+            purchase.setChatId(chatId);
             purchase.setApproved(purchaseProperties.getPrice().equals(transaction.getValue()));
             purchaseRepository.save(purchase);
 
             newTransactionIds.add(purchase.getTransactionId());
-            if (StringUtils.isNotBlank(transaction.getUsername())) {
-                newBuyers.add(transaction.getUsername());
+            if (StringUtils.isNotBlank(transaction.getChatId()) && purchase.isApproved()) {
+                newBuyers.add(transaction.getChatId());
             }
         }
 
@@ -79,6 +102,6 @@ public class PurchaseService {
     }
 
     public Integer purchasesCount(TgUser tgUser) {
-        return purchaseRepository.approvedPurchasesCount(tgUser.getName());
+        return purchaseRepository.approvedPurchasesCount(tgUser.getChatId());
     }
 }

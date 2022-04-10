@@ -8,5 +8,6 @@ public class TransactionDto {
     private String transactionId;
     private String sender;
     private String value;
+    private String chatId;
     private String username;
 }

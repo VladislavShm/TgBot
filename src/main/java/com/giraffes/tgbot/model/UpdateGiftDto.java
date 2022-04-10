@@ -11,7 +11,7 @@ public class UpdateGiftDto {
     private Long giftId;
 
     @NotBlank
-    private String username;
+    private String chatId;
 
     @NotBlank
     private String wallet;

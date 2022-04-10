@@ -110,7 +110,7 @@ public class InitialScreen implements ScreenProcessor {
     private void sendPurchaseLink(String chatId, TgUser tgUser) throws TelegramApiException {
         tgSender.execute(
                 SendMessage.builder()
-                        .text("Ссылка для покупки NFT: " + purchaseService.createLink(tgUser))
+                        .text(purchaseService.createPurchaseMessage(tgUser))
                         .chatId(chatId)
                         .replyMarkup(createBaseButtons())
                         .build()
