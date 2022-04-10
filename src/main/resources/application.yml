@@ -16,7 +16,8 @@ tg-bot:
 
 purchase:
   wallet: ${WALLET_ADDRESS}
-  price: ${BASE_NFT_PRICE}
+  basePrice: ${BASE_NFT_PRICE}
+  presalePrice: ${PRESALE_NFT_PRICE}
 
 logging:
   level:

@@ -20,7 +20,7 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.createCancelButton;
 @Component
 @RequiredArgsConstructor
 public class PurchaseLocationProcessor implements LocationProcessor {
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
+    private static final Pattern QUANTITY_PATTERN = Pattern.compile("^\\d+$");
 
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
@@ -52,7 +52,7 @@ public class PurchaseLocationProcessor implements LocationProcessor {
         String text = update.getMessage().getText();
         if ("Отмена".equals(text)) {
             return UserLocation.BASE;
-        } else if (NUMBER_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
+        } else if (QUANTITY_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
             sendPurchaseLink(tgUser, Integer.parseInt(text));
             return UserLocation.BASE;
         } else {
@@ -62,10 +62,10 @@ public class PurchaseLocationProcessor implements LocationProcessor {
         return getLocation();
     }
 
-    private void sendPurchaseLink(TgUser tgUser, Integer number) throws TelegramApiException {
+    private void sendPurchaseLink(TgUser tgUser, Integer quantity) throws TelegramApiException {
         tgSender.execute(
                 SendMessage.builder()
-                        .text(purchaseService.createPurchaseMessage(tgUser, number))
+                        .text(purchaseService.createPurchaseMessage(tgUser, quantity))
                         .chatId(tgUser.getChatId())
                         .replyMarkup(createCancelButton())
                         .build()
