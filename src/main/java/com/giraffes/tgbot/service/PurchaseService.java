@@ -89,7 +89,7 @@ public class PurchaseService {
             Integer number = null;
             boolean approved = false;
             if (receivedNumber != null && buyer != null) {
-                BigInteger price = new BigInteger(String.valueOf(calculateNftPrice(buyer)));
+                BigInteger price = new BigInteger(String.valueOf(calculateNftPrice(buyer) * 1000000000));
                 BigInteger expectedAmount = receivedNumber.multiply(price);
                 if (expectedAmount.equals(value)) {
                     number = receivedNumber.intValue();
