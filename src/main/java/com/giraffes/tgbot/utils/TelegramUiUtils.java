@@ -15,9 +15,10 @@ public class TelegramUiUtils {
                 .keyboardRow(
                         new KeyboardRow(
                                 Arrays.asList(
-                                        new KeyboardButton("Купить"),
-                                        new KeyboardButton("Инвайт инфо"),
-                                        new KeyboardButton("Мои жирафы")
+                                        new KeyboardButton("Купить \uD83E\uDD92"),
+                                        new KeyboardButton("Инвайт инфо \uD83D\uDC65"),
+                                        new KeyboardButton("Мои жирафы \uD83E\uDD92"),
+                                        new KeyboardButton("О нас \uD83D\uDCD6")
                                 )
                         )
                 )

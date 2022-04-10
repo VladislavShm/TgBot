@@ -66,6 +66,7 @@ public class PurchaseLocationProcessor implements LocationProcessor {
         tgSender.execute(
                 SendMessage.builder()
                         .text(purchaseService.createPurchaseMessage(tgUser, quantity))
+                        .parseMode("html")
                         .chatId(tgUser.getChatId())
                         .replyMarkup(createCancelButton())
                         .build()

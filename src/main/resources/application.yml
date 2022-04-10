@@ -18,6 +18,7 @@ purchase:
   wallet: ${WALLET_ADDRESS}
   basePrice: ${BASE_NFT_PRICE}
   presalePrice: ${PRESALE_NFT_PRICE}
+  presaleQuantity: ${PRESALE_NFT_QUANTITY}
 
 logging:
   level:

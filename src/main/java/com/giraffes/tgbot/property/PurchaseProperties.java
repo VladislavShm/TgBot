@@ -23,4 +23,7 @@ public class PurchaseProperties {
 
     @NotNull
     private Long presalePrice;
+
+    @NotNull
+    private Integer presaleQuantity;
 }

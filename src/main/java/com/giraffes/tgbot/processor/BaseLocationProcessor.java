@@ -2,6 +2,7 @@ package com.giraffes.tgbot.processor;
 
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserLocation;
+import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.GiftService;
 import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
@@ -32,6 +33,7 @@ public class BaseLocationProcessor implements LocationProcessor {
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
     private final GiftService giftService;
+    private final PurchaseProperties purchaseProperties;
 
     @Autowired
     private AbsSender tgSender;
@@ -45,35 +47,57 @@ public class BaseLocationProcessor implements LocationProcessor {
     @SneakyThrows
     public UserLocation process(Update update, boolean redirected) {
         TgUser tgUser = tgUserService.getCurrentUser();
+        Integer soldPresaleNFT = purchaseService.getSoldPresaleNFTQuantity() + giftService.getGiftedNFTQuantity();
+
         if (redirected) {
-            sendBaseMessage(tgUser.getChatId());
+            sendBaseMessage(tgUser.getChatId(), soldPresaleNFT);
             return getLocation();
         }
 
         String text = update.getMessage().getText();
         String chatId = tgUser.getChatId();
-        if ("Купить".equals(text)) {
+        if ("Купить \uD83E\uDD92".equals(text)) {
             return UserLocation.PURCHASE;
-        } else if ("Инвайт инфо".equals(text)) {
+        } else if ("Инвайт инфо \uD83D\uDC65".equals(text)) {
             sendInviteInfo(chatId, tgUser);
         } else if ("Мои жирафы".equals(text)) {
             sendMyGiraffesInfo(chatId, tgUser);
+        } else if ("О нас \uD83D\uDCD6".equals(text)) {
+            getGiraffeInfo(chatId, soldPresaleNFT);
         } else {
             checkInvitation(text, tgUser);
-            sendBaseMessage(chatId);
+            sendBaseMessage(chatId, soldPresaleNFT);
         }
 
         return getLocation();
     }
 
-    private void sendBaseMessage(String chatId) throws TelegramApiException {
+    private void sendBaseMessage(String chatId, Integer soldPresaleNFT) throws TelegramApiException {
         tgSender.execute(
                 SendMessage.builder()
-                        .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)")
+                        .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
+                                "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + getAvailableNftQuantity(soldPresaleNFT) + " \uD83E\uDD92 к приобритению. ")
+                        .parseMode("html")
                         .chatId(chatId)
                         .replyMarkup(createBaseButtons())
                         .build()
         );
+    }
+
+    private void getGiraffeInfo(String chatId, Integer availablePresaleNFT) throws TelegramApiException {
+        String message = "Мы - первый инвестиционный DAO на блокчейне TON - <a href=\"https://telegra.ph/Giraffe-Capital---investicionnyj-DAO-na-blokchejne-TON-03-21\">GIRAFFE CAPITAL\uD83E\uDD92</a>\n" +
+                "В данный момент идёт этап <b>PRESALE</b>.\nОсталось nft - " + getAvailableNftQuantity(availablePresaleNFT) + "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
+        tgSender.execute(
+                SendMessage.builder()
+                        .text(message)
+                        .parseMode("html")
+                        .chatId(chatId)
+                        .replyMarkup(createBaseButtons())
+                        .build());
+    }
+
+    private Integer getAvailableNftQuantity(Integer soldPresaleNFT) {
+        return (purchaseProperties.getPresaleQuantity() - soldPresaleNFT);
     }
 
     private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {

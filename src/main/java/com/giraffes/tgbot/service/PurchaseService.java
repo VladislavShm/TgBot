@@ -37,8 +37,8 @@ public class PurchaseService {
 
         return String.format(
                 "На данный момент стоимость NFT для Вас составляет: %s TON.\n\n" +
-                        "Для покупки %s NFT Вам необходимо отправить %s TON на кошелек: \n%s\n\n" +
-                        "Чтобы получить уведомление об успешном совершении сделки, пожалуйста, укажите в описании перевода комментарий: id=%s&n=%s\n\n" +
+                        "Для покупки %s NFT Вам необходимо отправить %s TON на кошелек: \n<CODE><b>%s</b></CODE>\n\n" +
+                        "Чтобы получить уведомление об успешном совершении сделки, пожалуйста, укажите в описании перевода комментарий: <CODE><b>id=%s&n=%s</b></CODE>\n\n" +
                         "В случае, если указать комментарий не представляется возможным, Вы можете сообщить о покупке нам напрямую - @GhostOfGiraffe\n\n\n" +
                         "Или же Вы можете воспользоваться готовой ссылкой: %s",
                 price,
@@ -122,6 +122,10 @@ public class PurchaseService {
         }
 
         log.info("Registered new purchases: {}", newTransactionIds);
+    }
+
+    public Integer getSoldPresaleNFTQuantity() {
+        return purchaseRepository.getSoldPresaleNFTQuantity();
     }
 
     public Integer purchasesCount(TgUser tgUser) {

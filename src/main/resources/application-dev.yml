@@ -11,6 +11,7 @@ purchase:
   wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
   basePrice: 8
   presalePrice: 4
+  presaleQuantity: 300
 
 logging:
   level:

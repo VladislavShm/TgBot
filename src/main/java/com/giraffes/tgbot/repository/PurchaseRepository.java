@@ -15,4 +15,7 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
 
     @Query("select sum(purchase.number) from Purchase purchase where purchase.chatId = :chatId and purchase.approved = true")
     Integer approvedPurchasesCount(@Param("chatId") String chatId);
+
+    @Query("select coalesce(sum(number),0) from Purchase where purchase.approved = true")
+    Integer getSoldPresaleNFTQuantity();
 }

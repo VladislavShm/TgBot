@@ -34,6 +34,10 @@ public class GiftService {
         giftCommunicationService.sendGiftNotification(gift.getUser(), gift.getWallet());
     }
 
+    public Integer getGiftedNFTQuantity() {
+        return giftRepository.getGiftedNFTQuantity();
+    }
+
     public void updateGift(UpdateGiftDto giftDto) {
         Gift gift = giftRepository.getById(giftDto.getGiftId());
         gift.setAmount(giftDto.getAmount());
