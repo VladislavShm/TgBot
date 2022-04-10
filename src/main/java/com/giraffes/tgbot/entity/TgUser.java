@@ -4,15 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Getter
@@ -35,6 +27,10 @@ public class TgUser {
 
     @Column(name = "chat_id")
     private String chatId;
+
+    @Column(name = "location")
+    @Enumerated(EnumType.STRING)
+    private UserLocation location;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invited_by")
@@ -61,6 +57,7 @@ public class TgUser {
                 "name = " + name + ", " +
                 "firstName = " + firstName + ", " +
                 "lastName = " + lastName + ", " +
-                "chatId = " + chatId + ")";
+                "chatId = " + chatId + ", " +
+                "location = " + location + ")";
     }
 }

@@ -6,9 +6,10 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @UtilityClass
-public class TgUiUtils {
+public class TelegramUiUtils {
     public static ReplyKeyboardMarkup createBaseButtons() {
         return ReplyKeyboardMarkup.builder()
                 .keyboardRow(
@@ -17,6 +18,19 @@ public class TgUiUtils {
                                         new KeyboardButton("Купить"),
                                         new KeyboardButton("Инвайт инфо"),
                                         new KeyboardButton("Мои жирафы")
+                                )
+                        )
+                )
+                .resizeKeyboard(true)
+                .build();
+    }
+
+    public static ReplyKeyboardMarkup createCancelButton() {
+        return ReplyKeyboardMarkup.builder()
+                .keyboardRow(
+                        new KeyboardRow(
+                                Collections.singletonList(
+                                        new KeyboardButton("Отмена")
                                 )
                         )
                 )

@@ -27,6 +27,9 @@ public class Purchase {
     private String amount;
 
     @Column
+    private Integer number;
+
+    @Column
     private String transactionId;
 
     @Column
