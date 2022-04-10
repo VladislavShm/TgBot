@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
-import static com.giraffes.tgbot.utils.TgUiUtils.createBaseButtons;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
 
 @Slf4j
 @Service
@@ -17,6 +17,7 @@ import static com.giraffes.tgbot.utils.TgUiUtils.createBaseButtons;
 public class PurchaseCommunicationService {
     private final PurchaseRepository purchaseRepository;
     private final TgUserService tgUserService;
+    private final GiftService giftService;
     private final AbsSender tgSender;
 
     @SneakyThrows
@@ -29,7 +30,11 @@ public class PurchaseCommunicationService {
 
         tgSender.execute(
                 SendMessage.builder()
-                        .text("Спасибо за покупку! На данный момент у вас имеется " + purchaseRepository.approvedPurchasesCount(chatId) + " жирафов")
+                        .text(
+                                "Спасибо за покупку! На данный момент у вас имеется " +
+                                        (purchaseRepository.approvedPurchasesCount(chatId) + giftService.giftsCount(tgUser)) +
+                                        " жирафов"
+                        )
                         .parseMode("html")
                         .chatId(tgUser.getChatId())
                         .replyMarkup(createBaseButtons())

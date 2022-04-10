@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
-import static com.giraffes.tgbot.utils.TgUiUtils.createBaseButtons;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
 
 @Slf4j
 @Service

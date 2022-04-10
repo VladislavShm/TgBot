@@ -18,12 +18,11 @@ public class WebHookController {
     @PostMapping("/")
     public BotApiMethod<?> onUpdateReceived(@RequestBody Update update) {
         try {
-            return incomingUpdateProcessor.process(update);
+            incomingUpdateProcessor.process(update);
         } catch (Exception e) {
             log.error("Error happened while processing: {}. ", update, e);
         }
 
-        log.warn("Unexpected situation. Return null!");
         return null;
     }
 }

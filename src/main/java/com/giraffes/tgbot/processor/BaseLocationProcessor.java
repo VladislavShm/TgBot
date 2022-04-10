@@ -1,36 +1,33 @@
-package com.giraffes.tgbot.screen;
+package com.giraffes.tgbot.processor;
 
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.repository.TgUserRepository;
+import com.giraffes.tgbot.entity.UserLocation;
 import com.giraffes.tgbot.service.GiftService;
 import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.Serializable;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static com.giraffes.tgbot.utils.TgUiUtils.createBaseButtons;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
-public class InitialScreen implements ScreenProcessor {
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
+public class BaseLocationProcessor implements LocationProcessor {
+    private static final Pattern ID_PATTERN = Pattern.compile("^\\d+$");
 
-    private final TgUserRepository tgUserRepository;
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
     private final GiftService giftService;
@@ -39,33 +36,43 @@ public class InitialScreen implements ScreenProcessor {
     private AbsSender tgSender;
 
     @Override
-    public boolean shouldProcessIncomingMessage(Message message, String text) {
-        return true;
+    public UserLocation getLocation() {
+        return UserLocation.BASE;
     }
 
     @Override
     @SneakyThrows
-    public BotApiMethod<?> processIncomingMessage(String text, String chatId, Message message) {
+    public UserLocation process(Update update, boolean redirected) {
         TgUser tgUser = tgUserService.getCurrentUser();
-
-        if ("Купить".equals(text)) {
-            sendPurchaseLink(chatId, tgUser);
-            return null;
-        } else if ("Инвайт инфо".equals(text)) {
-            sendInviteInfo(chatId, tgUser);
-            return null;
-        } else if ("Мои жирафы".equals(text)) {
-            sendMyGiraffesInfo(chatId, tgUser);
-            return null;
+        if (redirected) {
+            sendBaseMessage(tgUser.getChatId());
+            return getLocation();
         }
 
-        checkInvitation(text, tgUser);
+        String text = update.getMessage().getText();
+        String chatId = tgUser.getChatId();
+        if ("Купить".equals(text)) {
+            return UserLocation.PURCHASE;
+        } else if ("Инвайт инфо".equals(text)) {
+            sendInviteInfo(chatId, tgUser);
+        } else if ("Мои жирафы".equals(text)) {
+            sendMyGiraffesInfo(chatId, tgUser);
+        } else {
+            checkInvitation(text, tgUser);
+            sendBaseMessage(chatId);
+        }
 
-        return SendMessage.builder()
-                .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)")
-                .chatId(chatId)
-                .replyMarkup(createBaseButtons())
-                .build();
+        return getLocation();
+    }
+
+    private void sendBaseMessage(String chatId) throws TelegramApiException {
+        tgSender.execute(
+                SendMessage.builder()
+                        .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)")
+                        .chatId(chatId)
+                        .replyMarkup(createBaseButtons())
+                        .build()
+        );
     }
 
     private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {
@@ -90,7 +97,7 @@ public class InitialScreen implements ScreenProcessor {
     private void sendInviteInfo(String chatId, TgUser tgUser) throws TelegramApiException {
         tgSender.execute(
                 SendMessage.builder()
-                        .text("На данный момент Вы пригласили <i><b>" + tgUserRepository.invitedCount(tgUser) + "</b></i> человек")
+                        .text("На данный момент Вы пригласили <i><b>" + tgUserService.invitedCount(tgUser) + "</b></i> человек")
                         .parseMode("html")
                         .chatId(chatId)
                         .replyMarkup(createBaseButtons())
@@ -107,17 +114,11 @@ public class InitialScreen implements ScreenProcessor {
         );
     }
 
-    private void sendPurchaseLink(String chatId, TgUser tgUser) throws TelegramApiException {
-        tgSender.execute(
-                SendMessage.builder()
-                        .text(purchaseService.createPurchaseMessage(tgUser))
-                        .chatId(chatId)
-                        .replyMarkup(createBaseButtons())
-                        .build()
-        );
-    }
-
     private void checkInvitation(String text, TgUser tgUser) {
+        if (StringUtils.isBlank(text)) {
+            return;
+        }
+
         if (!text.startsWith("/start") || text.length() <= "/start".length()) {
             return;
         }
@@ -143,7 +144,7 @@ public class InitialScreen implements ScreenProcessor {
             return;
         }
 
-        Optional<TgUser> inviter = tgUserRepository.findById(inviterId);
+        Optional<TgUser> inviter = tgUserService.findById(inviterId);
         if (!inviter.isPresent()) {
             log.info("Invalid inviter ID: {}", inviterId);
             return;
@@ -154,7 +155,7 @@ public class InitialScreen implements ScreenProcessor {
 
     private Long extractInviterId(String text) {
         String rawInviterId = text.substring("/start".length()).trim();
-        if (NUMBER_PATTERN.matcher(rawInviterId).find()) {
+        if (ID_PATTERN.matcher(rawInviterId).find()) {
             return Long.parseLong(rawInviterId);
         }
 
@@ -166,7 +167,7 @@ public class InitialScreen implements ScreenProcessor {
                 rawInviterId = decodedString.substring("base64".length());
             }
 
-            if (NUMBER_PATTERN.matcher(rawInviterId).find()) {
+            if (ID_PATTERN.matcher(rawInviterId).find()) {
                 return Long.parseLong(rawInviterId);
             }
         } catch (Exception e) {
@@ -176,13 +177,4 @@ public class InitialScreen implements ScreenProcessor {
         return null;
     }
 
-    @Override
-    public boolean shouldProcessIncomingAction(String data) {
-        return false;
-    }
-
-    @Override
-    public BotApiMethod<? extends Serializable> processIncomingAction(Update update, String chatId, String data) {
-        return null;
-    }
 }

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
@@ -17,6 +18,6 @@ public class PurchaseProperties {
     @NotBlank
     private String wallet;
 
-    @NotBlank
-    private String price;
+    @NotNull
+    private Long price;
 }

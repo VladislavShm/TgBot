@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -18,32 +19,39 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PurchaseService {
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("^\\d+$");
+
     private final TgUserService tgUserService;
     private final PurchaseProperties purchaseProperties;
     private final PurchaseRepository purchaseRepository;
     private final PurchaseCommunicationService purchaseCommunicationService;
 
-    public String createPurchaseMessage(TgUser tgUser) {
+    public String createPurchaseMessage(TgUser tgUser, Integer number) {
+        long humanReadablePrice = purchaseProperties.getPrice() / 1000000000;
         return String.format(
                 "На данный момент стоимость NFT для Вас составляет: %s TON.\n\n" +
-                        "Для покупки NFT Вам необходимо отправить указанную сумму на кошелек: \n%s\n\n" +
-                        "Чтобы получить уведомление об успешном совершении сделки, пожалуйста, укажите в описании перевода комментарий: \nid=%s\n\n" +
+                        "Для покупки %s NFT Вам необходимо отправить %s TON на кошелек: \n%s\n\n" +
+                        "Чтобы получить уведомление об успешном совершении сделки, пожалуйста, укажите в описании перевода комментарий: id=%s&n=%s\n\n" +
                         "В случае, если указать комментарий не представляется возможным, Вы можете сообщить о покупке нам напрямую - @GhostOfGiraffe\n\n\n" +
                         "Или же Вы можете воспользоваться готовой ссылкой: %s",
-                Long.parseLong(purchaseProperties.getPrice()) / 1000000000,
+                humanReadablePrice,
+                number,
+                number * humanReadablePrice,
                 purchaseProperties.getWallet(),
                 tgUser.getChatId(),
-                createLink(tgUser)
+                number,
+                createLink(tgUser, number)
         );
     }
 
-    private String createLink(TgUser tgUser) {
-        return String.format("ton://transfer/%s?amount=%s&text=id=%s", purchaseProperties.getWallet(), purchaseProperties.getPrice(), tgUser.getChatId());
+    private String createLink(TgUser tgUser, Integer number) {
+        return String.format("ton://transfer/%s?amount=%s&text=id=%s&n=%s", purchaseProperties.getWallet(), purchaseProperties.getPrice() * number, tgUser.getChatId(), number);
     }
 
     @Transactional
@@ -74,13 +82,30 @@ public class PurchaseService {
                 }
             }
 
+            BigInteger receivedNumber = !StringUtils.isBlank(transaction.getNumber()) && NUMBER_PATTERN.matcher(transaction.getNumber()).find()
+                    ? new BigInteger(transaction.getNumber())
+                    : null;
+
+            BigInteger value = new BigInteger(transaction.getValue());
+
+            Integer number = null;
+            boolean approved = false;
+            if (receivedNumber != null) {
+                BigInteger expectedAmount = receivedNumber.multiply(new BigInteger(purchaseProperties.getPrice().toString()));
+                if (expectedAmount.equals(value)) {
+                    number = receivedNumber.intValue();
+                    approved = true;
+                }
+            }
+
             Purchase purchase = new Purchase();
             purchase.setAmount(transaction.getValue());
             purchase.setDatetime(datetime);
             purchase.setBuyerWallet(transaction.getSender());
             purchase.setTransactionId(transaction.getTransactionId());
             purchase.setChatId(chatId);
-            purchase.setApproved(purchaseProperties.getPrice().equals(transaction.getValue()));
+            purchase.setNumber(number);
+            purchase.setApproved(approved);
             purchaseRepository.save(purchase);
 
             newTransactionIds.add(purchase.getTransactionId());
@@ -96,7 +121,6 @@ public class PurchaseService {
                 log.error("Error while sending purchase notification to {}. ", newBuyer, e);
             }
         }
-
 
         log.info("Registered new purchases: {}", newTransactionIds);
     }

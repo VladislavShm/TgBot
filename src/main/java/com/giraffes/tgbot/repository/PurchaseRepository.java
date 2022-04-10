@@ -13,6 +13,6 @@ public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
     @Query("select purchase.transactionId from Purchase purchase")
     List<String> findAllTransactionIds();
 
-    @Query("select count(purchase.id) from Purchase purchase where purchase.chatId = :chatId and purchase.approved = true")
+    @Query("select sum(purchase.number) from Purchase purchase where purchase.chatId = :chatId and purchase.approved = true")
     Integer approvedPurchasesCount(@Param("chatId") String chatId);
 }

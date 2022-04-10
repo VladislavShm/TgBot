@@ -1,15 +1,19 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.entity.UserLocation;
 import com.giraffes.tgbot.property.BotProperties;
 import com.giraffes.tgbot.repository.TgUserRepository;
+import com.giraffes.tgbot.utils.TelegramUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -26,7 +30,9 @@ public class TgUserService {
         return "https://t.me/" + botProperties.getBotUserName() + "?start=" + uniqueCode;
     }
 
-    public void authenticateUser(User user, String chatId) {
+    public TgUser authenticateUser(Update update) {
+        User user = TelegramUtils.extractUser(update);
+        String chatId = TelegramUtils.determineChatId(update);
         TgUser tgUser = tgUserRepository.findByChatId(chatId);
         if (tgUser == null) {
             tgUser = createUser(
@@ -42,6 +48,7 @@ public class TgUserService {
         }
 
         CURRENT_USER.set(tgUser);
+        return tgUser;
     }
 
     private TgUser createUser(String username, String firstName, String lastName, String chatId) {
@@ -52,6 +59,7 @@ public class TgUserService {
         tgUser.setFirstName(firstName);
         tgUser.setLastName(lastName);
         tgUser.setChatId(chatId);
+        tgUser.setLocation(UserLocation.BASE);
         tgUser = tgUserRepository.save(tgUser);
         log.info("New user was created: {}", tgUser);
 
@@ -72,5 +80,13 @@ public class TgUserService {
 
     public TgUser getCurrentUser() {
         return CURRENT_USER.get();
+    }
+
+    public Integer invitedCount(TgUser tgUser) {
+        return tgUserRepository.invitedCount(tgUser);
+    }
+
+    public Optional<TgUser> findById(Long inviterId) {
+        return tgUserRepository.findById(inviterId);
     }
 }
