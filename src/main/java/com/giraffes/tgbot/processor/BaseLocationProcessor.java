@@ -77,7 +77,7 @@ public class BaseLocationProcessor implements LocationProcessor {
     }
 
     private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {
-        Integer giftsCount = giftService.giftsCount(tgUser);
+        Integer giftsCount = ObjectUtils.defaultIfNull(giftService.giftsCount(tgUser), 0);
         Integer purchasesCount = purchaseService.purchasesCount(tgUser);
         String message = String.format(
                 "На данный момент Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
