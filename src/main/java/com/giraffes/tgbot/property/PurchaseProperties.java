@@ -19,5 +19,8 @@ public class PurchaseProperties {
     private String wallet;
 
     @NotNull
-    private Long price;
+    private Long basePrice;
+
+    @NotNull
+    private Long presalePrice;
 }

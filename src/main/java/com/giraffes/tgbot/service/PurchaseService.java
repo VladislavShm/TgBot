@@ -32,26 +32,23 @@ public class PurchaseService {
     private final PurchaseRepository purchaseRepository;
     private final PurchaseCommunicationService purchaseCommunicationService;
 
-    public String createPurchaseMessage(TgUser tgUser, Integer number) {
-        long humanReadablePrice = purchaseProperties.getPrice() / 1000000000;
+    public String createPurchaseMessage(TgUser tgUser, Integer quantity) {
+        long price = calculateNftPrice(tgUser);
+
         return String.format(
                 "На данный момент стоимость NFT для Вас составляет: %s TON.\n\n" +
                         "Для покупки %s NFT Вам необходимо отправить %s TON на кошелек: \n%s\n\n" +
                         "Чтобы получить уведомление об успешном совершении сделки, пожалуйста, укажите в описании перевода комментарий: id=%s&n=%s\n\n" +
                         "В случае, если указать комментарий не представляется возможным, Вы можете сообщить о покупке нам напрямую - @GhostOfGiraffe\n\n\n" +
                         "Или же Вы можете воспользоваться готовой ссылкой: %s",
-                humanReadablePrice,
-                number,
-                number * humanReadablePrice,
+                price,
+                quantity,
+                quantity * price,
                 purchaseProperties.getWallet(),
                 tgUser.getChatId(),
-                number,
-                createLink(tgUser, number)
+                quantity,
+                createLink(tgUser, quantity, price)
         );
-    }
-
-    private String createLink(TgUser tgUser, Integer number) {
-        return String.format("ton://transfer/%s?amount=%s&text=id=%s&n=%s", purchaseProperties.getWallet(), purchaseProperties.getPrice() * number, tgUser.getChatId(), number);
     }
 
     @Transactional
@@ -74,9 +71,10 @@ public class PurchaseService {
                 continue;
             }
 
+            TgUser buyer = null;
             String chatId = transaction.getChatId();
             if (StringUtils.isEmpty(chatId) && StringUtils.isNotEmpty(transaction.getUsername())) {
-                TgUser buyer = tgUserService.findByUsername(transaction.getUsername());
+                buyer = tgUserService.findByUsername(transaction.getUsername());
                 if (buyer != null) {
                     chatId = buyer.getChatId();
                 }
@@ -90,8 +88,9 @@ public class PurchaseService {
 
             Integer number = null;
             boolean approved = false;
-            if (receivedNumber != null) {
-                BigInteger expectedAmount = receivedNumber.multiply(new BigInteger(purchaseProperties.getPrice().toString()));
+            if (receivedNumber != null && buyer != null) {
+                BigInteger price = new BigInteger(String.valueOf(calculateNftPrice(buyer)));
+                BigInteger expectedAmount = receivedNumber.multiply(price);
                 if (expectedAmount.equals(value)) {
                     number = receivedNumber.intValue();
                     approved = true;
@@ -127,5 +126,20 @@ public class PurchaseService {
 
     public Integer purchasesCount(TgUser tgUser) {
         return purchaseRepository.approvedPurchasesCount(tgUser.getChatId());
+    }
+
+    private long calculateNftPrice(TgUser tgUser) {
+        long humanReadablePrice = purchaseProperties.getBasePrice();
+        Integer invitedCount = tgUserService.invitedCount(tgUser);
+
+        if (invitedCount >= 2) {
+            humanReadablePrice = purchaseProperties.getPresalePrice();
+        }
+
+        return humanReadablePrice;
+    }
+
+    private String createLink(TgUser tgUser, Integer quantity, long price) {
+        return String.format("ton://transfer/%s?amount=%s&text=id=%s&n=%s", purchaseProperties.getWallet(), quantity * price * 1000000000, tgUser.getChatId(), quantity);
     }
 }
