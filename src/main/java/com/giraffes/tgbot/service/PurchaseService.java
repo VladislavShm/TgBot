@@ -140,6 +140,6 @@ public class PurchaseService {
     }
 
     private String createLink(TgUser tgUser, Integer quantity, long price) {
-        return String.format("ton://transfer/%s?amount=%s&text=id=%s&n=%s", purchaseProperties.getWallet(), price * 1000000000, tgUser.getChatId(), quantity);
+        return String.format("ton://transfer/%s?amount=%s&text=id=%s&n=%s", purchaseProperties.getWallet(), quantity * price * 1000000000, tgUser.getChatId(), quantity);
     }
 }
