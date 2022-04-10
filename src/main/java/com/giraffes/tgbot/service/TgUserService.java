@@ -1,6 +1,7 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.entity.UserLocation;
 import com.giraffes.tgbot.property.BotProperties;
 import com.giraffes.tgbot.repository.TgUserRepository;
 import com.giraffes.tgbot.utils.TelegramUtils;
@@ -58,6 +59,7 @@ public class TgUserService {
         tgUser.setFirstName(firstName);
         tgUser.setLastName(lastName);
         tgUser.setChatId(chatId);
+        tgUser.setLocation(UserLocation.BASE);
         tgUser = tgUserRepository.save(tgUser);
         log.info("New user was created: {}", tgUser);
 

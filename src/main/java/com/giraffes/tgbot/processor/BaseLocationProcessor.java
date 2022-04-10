@@ -45,7 +45,6 @@ public class BaseLocationProcessor implements LocationProcessor {
     public UserLocation process(Update update, boolean redirected) {
         TgUser tgUser = tgUserService.getCurrentUser();
         if (redirected) {
-            tgUser.setLocation(getLocation());
             sendBaseMessage(tgUser.getChatId());
             return getLocation();
         }

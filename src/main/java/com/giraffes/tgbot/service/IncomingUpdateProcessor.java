@@ -37,6 +37,7 @@ public class IncomingUpdateProcessor {
             UserLocation currentUserLocation = user.getLocation();
             UserLocation newUserLocation = processors.get(currentUserLocation).process(update, false);
             if (currentUserLocation != newUserLocation) {
+                user.setLocation(newUserLocation);
                 processors.get(newUserLocation).process(update, true);
             }
 

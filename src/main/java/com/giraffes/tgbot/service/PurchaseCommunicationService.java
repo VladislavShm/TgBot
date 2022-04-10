@@ -17,6 +17,7 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
 public class PurchaseCommunicationService {
     private final PurchaseRepository purchaseRepository;
     private final TgUserService tgUserService;
+    private final GiftService giftService;
     private final AbsSender tgSender;
 
     @SneakyThrows
@@ -29,7 +30,11 @@ public class PurchaseCommunicationService {
 
         tgSender.execute(
                 SendMessage.builder()
-                        .text("Спасибо за покупку! На данный момент у вас имеется " + purchaseRepository.approvedPurchasesCount(chatId) + " жирафов")
+                        .text(
+                                "Спасибо за покупку! На данный момент у вас имеется " +
+                                        (purchaseRepository.approvedPurchasesCount(chatId) + giftService.giftsCount(tgUser)) +
+                                        " жирафов"
+                        )
                         .parseMode("html")
                         .chatId(tgUser.getChatId())
                         .replyMarkup(createBaseButtons())

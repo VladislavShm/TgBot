@@ -84,16 +84,18 @@ public class PurchaseService {
 
             BigInteger receivedNumber = !StringUtils.isBlank(transaction.getNumber()) && NUMBER_PATTERN.matcher(transaction.getNumber()).find()
                     ? new BigInteger(transaction.getNumber())
-                    : BigInteger.ONE;
+                    : null;
 
             BigInteger value = new BigInteger(transaction.getValue());
 
             Integer number = null;
             boolean approved = false;
-            BigInteger expectedAmount = receivedNumber.multiply(new BigInteger(purchaseProperties.getPrice().toString()));
-            if (expectedAmount.equals(value)) {
-                number = receivedNumber.intValue();
-                approved = true;
+            if (receivedNumber != null) {
+                BigInteger expectedAmount = receivedNumber.multiply(new BigInteger(purchaseProperties.getPrice().toString()));
+                if (expectedAmount.equals(value)) {
+                    number = receivedNumber.intValue();
+                    approved = true;
+                }
             }
 
             Purchase purchase = new Purchase();

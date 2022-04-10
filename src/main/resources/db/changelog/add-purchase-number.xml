@@ -12,4 +12,10 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="1649597296166-2" author="giraffe">
+        <sql>
+            update purchase set number = 1 where approved = true
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

@@ -38,11 +38,9 @@ public class PurchaseLocationProcessor implements LocationProcessor {
     public UserLocation process(Update update, boolean redirected) {
         TgUser tgUser = tgUserService.getCurrentUser();
         if (redirected) {
-            tgUser.setLocation(getLocation());
-
             tgSender.execute(
                     SendMessage.builder()
-                            .text("Пожалуйста, укажите количество \uD83E\uDD92 которое вы хотели бы купить")
+                            .text("Пожалуйста, укажите количество \uD83E\uDD92 для покупки")
                             .chatId(tgUser.getChatId())
                             .replyMarkup(createCancelButton())
                             .build()
@@ -77,7 +75,7 @@ public class PurchaseLocationProcessor implements LocationProcessor {
     private void sendInvalidInput(TgUser tgUser) throws TelegramApiException {
         tgSender.execute(
                 SendMessage.builder()
-                        .text("Неверный формат.\n\nПожалуйста, укажите количество \uD83E\uDD92 которое вы хотели бы купить")
+                        .text("Неверный формат.\n\nПожалуйста, укажите количество \uD83E\uDD92 для покупки")
                         .chatId(tgUser.getChatId())
                         .replyMarkup(createCancelButton())
                         .build()
