@@ -30,7 +30,7 @@ public class Purchase {
     private String transactionId;
 
     @Column
-    private String username;
+    private String chatId;
 
     @Column
     private boolean approved;

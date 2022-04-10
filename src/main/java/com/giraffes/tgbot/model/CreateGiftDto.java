@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 @Data
 public class CreateGiftDto {
     @NotBlank
-    private String username;
+    private String chatId;
 
     @NotBlank
     private String wallet;

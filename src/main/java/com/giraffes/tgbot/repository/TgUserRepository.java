@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TgUserRepository extends JpaRepository<TgUser, Long> {
     TgUser findByName(String name);
+    TgUser findByChatId(String chatId);
 
     @Query("select count(tgUser.id) from TgUser tgUser where tgUser.invitedBy = :tgUser")
     Integer invitedCount(@Param("tgUser") TgUser tgUser);
