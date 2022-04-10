@@ -8,6 +8,7 @@ import com.giraffes.tgbot.service.TgUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -77,11 +78,12 @@ public class BaseLocationProcessor implements LocationProcessor {
 
     private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {
         Integer giftsCount = giftService.giftsCount(tgUser);
+        Integer purchasesCount = purchaseService.purchasesCount(tgUser);
         String message = String.format(
                 "На данный момент Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe\n" +
                         "Как правило, проведение транзакции и получение данных о Вашем переводе средств занимают некоторое время.",
-                purchaseService.purchasesCount(tgUser), giftsCount > 0 ? " и выиграли <i><b>" + giftsCount + "</b></i>" : ""
+                ObjectUtils.defaultIfNull(purchasesCount, 0), giftsCount > 0 ? " и выиграли <i><b>" + giftsCount + "</b></i>" : ""
         );
 
         tgSender.execute(
