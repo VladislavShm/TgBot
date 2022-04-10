@@ -5,6 +5,7 @@ import com.giraffes.tgbot.repository.PurchaseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -32,7 +33,10 @@ public class PurchaseCommunicationService {
                 SendMessage.builder()
                         .text(
                                 "Спасибо за покупку! На данный момент у вас имеется " +
-                                        (purchaseRepository.approvedPurchasesCount(chatId) + giftService.giftsCount(tgUser)) +
+                                        (
+                                                ObjectUtils.defaultIfNull(purchaseRepository.approvedPurchasesCount(chatId), 0) +
+                                                        ObjectUtils.defaultIfNull(giftService.giftsCount(tgUser), 0)
+                                        ) +
                                         " жирафов"
                         )
                         .parseMode("html")
