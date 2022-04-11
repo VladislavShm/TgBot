@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.entity.UserLocation;
+import com.giraffes.tgbot.entity.Location;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class GiftCommunicationService {
                     "Мы отправим Вашу NFT сразу после окончания этапа presale.";
         }
 
-        tgUser.setLocation(UserLocation.BASE);
+        tgUser.setLocation(Location.BASE);
         telegramSenderService.send(message, createBaseButtons(), tgUser.getChatId());
     }
 }

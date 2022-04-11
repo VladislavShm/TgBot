@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.processor;
 
+import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.entity.UserLocation;
 import com.giraffes.tgbot.service.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -19,32 +19,34 @@ public class PurchaseLocationProcessor extends LocationProcessor {
     private final PurchaseService purchaseService;
 
     @Override
-    public UserLocation getLocation() {
-        return UserLocation.PURCHASE;
+    public Location getLocation() {
+        return Location.PURCHASE;
     }
 
     @Override
     @SneakyThrows
-    public UserLocation processText(TgUser user, String text, boolean redirected) {
+    public Location processText(TgUser user, String text, boolean redirected) {
         if (redirected) {
-            telegramSenderService.send(
-                    "Пожалуйста, укажите количество \uD83E\uDD92 для покупки",
-                    createCancelButtonKeyboard()
-            );
-
-            return getLocation();
-        }
-
-        if ("Отмена".equals(text)) {
-            return UserLocation.BASE;
+            askToSpecifyQuantityOfNft();
+        } else if ("Отмена".equals(text)) {
+            return Location.BASE;
         } else if (QUANTITY_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
             sendPurchaseLink(user, Integer.parseInt(text));
-            return UserLocation.BASE;
+            return Location.BASE;
+        } else if ("Ок".equals(text)) {
+            askToSpecifyQuantityOfNft();
         } else {
             sendInvalidInput();
         }
 
         return getLocation();
+    }
+
+    private void askToSpecifyQuantityOfNft() {
+        telegramSenderService.send(
+                "Пожалуйста, укажите количество \uD83E\uDD92 для покупки",
+                createCancelButtonKeyboard()
+        );
     }
 
     private void sendPurchaseLink(TgUser tgUser, Integer quantity) {

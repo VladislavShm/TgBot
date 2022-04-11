@@ -1,9 +1,13 @@
 package com.giraffes.tgbot.entity;
 
-public enum UserLocation {
+public enum Location {
     BASE,
     PURCHASE,
 
     SETTINGS,
     WALLET_SETTINGS,
+
+    AUCTIONS_BROWSE,
+    AUCTION_PARTICIPATION,
+    AUCTION_REGISTRATION,
 }

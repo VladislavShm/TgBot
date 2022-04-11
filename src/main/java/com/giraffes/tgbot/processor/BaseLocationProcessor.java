@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.processor;
 
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.entity.UserLocation;
+import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.GiftService;
 import com.giraffes.tgbot.service.PurchaseService;
@@ -31,30 +31,32 @@ public class BaseLocationProcessor extends LocationProcessor {
     private final GiftService giftService;
 
     @Override
-    public UserLocation getLocation() {
-        return UserLocation.BASE;
+    public Location getLocation() {
+        return Location.BASE;
     }
 
     @Override
     @SneakyThrows
-    public UserLocation processText(TgUser user, String text, boolean redirected) {
+    public Location processText(TgUser user, String text, boolean redirected) {
         Integer availableNftQuantity = getAvailableNftQuantity();
 
-        if (redirected) {
+        if (redirected || "Ок".equals(text)) {
             sendBaseMessage(availableNftQuantity);
             return getLocation();
         }
 
         if ("Купить \uD83E\uDD92".equals(text)) {
-            return UserLocation.PURCHASE;
+            return Location.PURCHASE;
         } else if ("Инвайт инфо \uD83D\uDC65".equals(text)) {
             sendInviteInfo(user);
         } else if ("Мои жирафы \uD83E\uDD92".equals(text)) {
             sendMyGiraffesInfo(user);
-        } else if ("О нас \uD83D\uDCD6".equals(text)) {
+        } else if ("Аукцион ⚖️".equals(text)) {
+            return Location.AUCTIONS_BROWSE;
+        } if ("О нас \uD83D\uDCD6".equals(text)) {
             sendGiraffeInfo(availableNftQuantity);
         } else if ("Настройки ⚙️".equals(text)) {
-            return UserLocation.SETTINGS;
+            return Location.SETTINGS;
         } else {
             checkInvitation(text, user);
             sendBaseMessage(availableNftQuantity);

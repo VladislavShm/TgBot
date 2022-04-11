@@ -1,8 +1,7 @@
 package com.giraffes.tgbot.processor;
 
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.entity.UserLocation;
-import com.giraffes.tgbot.service.TelegramSenderService;
+import com.giraffes.tgbot.entity.Location;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
@@ -19,21 +18,19 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.createCancelButtonRow;
 @RequiredArgsConstructor
 public class SettingsLocationProcessor extends LocationProcessor {
     @Override
-    public UserLocation getLocation() {
-        return UserLocation.SETTINGS;
+    public Location getLocation() {
+        return Location.SETTINGS;
     }
 
     @Override
     @SneakyThrows
-    public UserLocation processText(TgUser user, String text, boolean redirected) {
-        if (redirected) {
+    public Location processText(TgUser user, String text, boolean redirected) {
+        if (redirected || "Ок".equals(text)) {
             sendDefaultSettingsMessage();
         } else if ("Отмена".equals(text)) {
-            return UserLocation.BASE;
+            return Location.BASE;
         } else if ("Указать кошелек".equals(text)) {
-            return UserLocation.WALLET_SETTINGS;
-        } else {
-            sendDefaultSettingsMessage();
+            return Location.WALLET_SETTINGS;
         }
 
         return getLocation();

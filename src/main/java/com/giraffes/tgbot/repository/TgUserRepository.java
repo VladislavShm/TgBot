@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface TgUserRepository extends JpaRepository<TgUser, Long> {
     TgUser findByName(String name);
@@ -13,4 +15,7 @@ public interface TgUserRepository extends JpaRepository<TgUser, Long> {
 
     @Query("select count(tgUser.id) from TgUser tgUser where tgUser.invitedBy = :tgUser")
     Integer invitedCount(@Param("tgUser") TgUser tgUser);
+
+    @Query("select u.chatId from TgUser u")
+    List<String> queryAllChatIds();
 }

@@ -1,11 +1,12 @@
 package com.giraffes.tgbot.service;
 
+import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.Purchase;
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.entity.UserLocation;
 import com.giraffes.tgbot.model.TransactionDto;
 import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.repository.PurchaseRepository;
+import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -38,7 +39,8 @@ public class PurchaseService {
     private final TelegramSenderService telegramSenderService;
 
     public String createPurchaseMessage(TgUser tgUser, Integer quantity) {
-        long price = calculateNftPrice(tgUser);
+        BigInteger price = calculateNftPrice(tgUser);
+        BigInteger priceForAll = price.multiply(new BigInteger(String.valueOf(quantity)));
 
         return String.format(
                 "На данный момент стоимость NFT для Вас составляет: %s TON.\n\n" +
@@ -46,13 +48,13 @@ public class PurchaseService {
                         "Чтобы получить уведомление об успешном совершении сделки, пожалуйста, укажите в описании перевода комментарий: <CODE><b>id=%s&n=%s</b></CODE>\n\n" +
                         "В случае, если указать комментарий не представляется возможным, Вы можете сообщить о покупке нам напрямую - @GhostOfGiraffe\n\n\n" +
                         "Или же Вы можете воспользоваться готовой ссылкой: %s",
-                price,
+                TonCoinUtils.toHumanReadable(price),
                 quantity,
-                quantity * price,
+                TonCoinUtils.toHumanReadable(priceForAll),
                 purchaseProperties.getWallet(),
                 tgUser.getChatId(),
                 quantity,
-                createLink(tgUser, quantity, price)
+                createLink(tgUser, quantity, priceForAll)
         );
     }
 
@@ -105,7 +107,7 @@ public class PurchaseService {
         Integer number = null;
         boolean approved = false;
         if (receivedNumber != null && buyer != null) {
-            BigInteger nftPrice = new BigInteger(String.valueOf(calculateNftPrice(buyer))).multiply(new BigInteger("1000000000"));
+            BigInteger nftPrice = calculateNftPrice(buyer);
             BigInteger expectedAmount = receivedNumber.multiply(nftPrice);
             if (expectedAmount.equals(value)) {
                 number = receivedNumber.intValue();
@@ -154,7 +156,7 @@ public class PurchaseService {
             return;
         }
 
-        tgUser.setLocation(UserLocation.BASE);
+        tgUser.setLocation(Location.BASE);
         int giraffesQuantity = approvedPurchasesCount(tgUser) + giftService.giftsCount(tgUser);
         telegramSenderService.send(
                 String.format("Спасибо за покупку! На данный момент у вас имеется %d жирафов", giraffesQuantity),
@@ -163,18 +165,24 @@ public class PurchaseService {
         );
     }
 
-    private long calculateNftPrice(TgUser tgUser) {
-        long humanReadablePrice = purchaseProperties.getBasePrice();
+    private BigInteger calculateNftPrice(TgUser tgUser) {
+        BigInteger price = purchaseProperties.getBasePrice();
         Integer invitedCount = tgUserService.invitedCount(tgUser);
 
         if (invitedCount >= 2) {
-            humanReadablePrice = purchaseProperties.getPresalePrice();
+            price = purchaseProperties.getPresalePrice();
         }
 
-        return humanReadablePrice;
+        return price;
     }
 
-    private String createLink(TgUser tgUser, Integer quantity, long price) {
-        return String.format("ton://transfer/%s?amount=%s&text=id=%s&n=%s", purchaseProperties.getWallet(), quantity * price * 1000000000, tgUser.getChatId(), quantity);
+    private String createLink(TgUser tgUser, Integer quantity, BigInteger priceForAll) {
+        return String.format(
+                "ton://transfer/%s?amount=%s&text=id=%s&n=%s",
+                purchaseProperties.getWallet(),
+                priceForAll,
+                tgUser.getChatId(),
+                quantity
+        );
     }
 }

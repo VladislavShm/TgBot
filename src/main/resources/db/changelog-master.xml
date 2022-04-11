@@ -13,5 +13,9 @@
     <include file="db/changelog/add-user-location.xml"/>
     <include file="db/changelog/add-purchase-number.xml"/>
     <include file="db/changelog/add-user-wallet.xml"/>
+    <include file="db/changelog/create-auction.xml"/>
+    <include file="db/changelog/create-user-auction-activity.xml"/>
+    <include file="db/changelog/add-location-attributes.xml"/>
+    <include file="db/changelog/update-auction-table.xml"/>
 
 </databaseChangeLog>

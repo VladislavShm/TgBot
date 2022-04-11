@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 
 @Data
 @Validated
@@ -17,10 +18,10 @@ public class PurchaseProperties {
     private String wallet;
 
     @NotNull
-    private Long basePrice;
+    private BigInteger basePrice;
 
     @NotNull
-    private Long presalePrice;
+    private BigInteger presalePrice;
 
     @NotNull
     private Integer presaleQuantity;

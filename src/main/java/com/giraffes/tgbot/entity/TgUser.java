@@ -1,10 +1,13 @@
 package com.giraffes.tgbot.entity;
 
+import com.giraffes.tgbot.converter.jpa.LocationAttributeMapConverter;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Getter
@@ -30,7 +33,12 @@ public class TgUser {
 
     @Column(name = "location")
     @Enumerated(EnumType.STRING)
-    private UserLocation location;
+    private Location location;
+
+    @Lob
+    @Column(name = "location_attributes")
+    @Convert(converter = LocationAttributeMapConverter.class)
+    public Map<LocationAttribute, String> locationAttributes = new HashMap<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invited_by")

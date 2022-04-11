@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.entity.UserLocation;
+import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.property.BotProperties;
 import com.giraffes.tgbot.repository.TgUserRepository;
 import com.giraffes.tgbot.utils.TelegramUtils;
@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -59,7 +60,7 @@ public class TgUserService {
         tgUser.setFirstName(firstName);
         tgUser.setLastName(lastName);
         tgUser.setChatId(chatId);
-        tgUser.setLocation(UserLocation.BASE);
+        tgUser.setLocation(Location.BASE);
         tgUser = tgUserRepository.save(tgUser);
         log.info("New user was created: {}", tgUser);
 
@@ -88,5 +89,9 @@ public class TgUserService {
 
     public Optional<TgUser> findById(Long inviterId) {
         return tgUserRepository.findById(inviterId);
+    }
+
+    public List<String> queryAllChatIds() {
+        return tgUserRepository.queryAllChatIds();
     }
 }

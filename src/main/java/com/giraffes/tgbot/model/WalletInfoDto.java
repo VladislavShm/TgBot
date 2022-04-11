@@ -2,10 +2,10 @@ package com.giraffes.tgbot.model;
 
 import lombok.Data;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @Data
 public class WalletInfoDto {
     private boolean valid;
-    private BigDecimal balance;
+    private BigInteger balance;
 }

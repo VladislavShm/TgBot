@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.entity.UserLocation;
+import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.processor.LocationProcessor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Service
 public class IncomingUpdateProcessor {
     private final TgUserService tgUserService;
-    private final Map<UserLocation, LocationProcessor> processors;
+    private final Map<Location, LocationProcessor> processors;
 
     public IncomingUpdateProcessor(TgUserService tgUserService, List<LocationProcessor> locationProcessors) {
         this.tgUserService = tgUserService;
@@ -34,13 +34,12 @@ public class IncomingUpdateProcessor {
         log.info("Updated request has been successfully processed");
 
         if (update.hasMessage()) {
-            UserLocation currentUserLocation = user.getLocation();
-            UserLocation newUserLocation = processors.get(currentUserLocation).process(update, false);
-            if (currentUserLocation != newUserLocation) {
-                user.setLocation(newUserLocation);
-                processors.get(newUserLocation).process(update, true);
-            }
+            Location newUserLocation = processors.get(user.getLocation()).process(update, false);
 
+            while (user.getLocation() != newUserLocation) {
+                user.setLocation(newUserLocation);
+                newUserLocation = processors.get(newUserLocation).process(update, true);
+            }
         } else {
             log.warn("Received an update without a message from {}: {}", user, update);
         }
