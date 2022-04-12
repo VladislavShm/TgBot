@@ -11,11 +11,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Base64;
@@ -27,16 +24,13 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class BaseLocationProcessor implements LocationProcessor {
+public class BaseLocationProcessor extends LocationProcessor {
     private static final Pattern ID_PATTERN = Pattern.compile("^\\d+$");
 
+    private final PurchaseProperties purchaseProperties;
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
     private final GiftService giftService;
-    private final PurchaseProperties purchaseProperties;
-
-    @Autowired
-    private AbsSender tgSender;
 
     @Override
     public UserLocation getLocation() {
@@ -45,38 +39,42 @@ public class BaseLocationProcessor implements LocationProcessor {
 
     @Override
     @SneakyThrows
-    public UserLocation process(Update update, boolean redirected) {
-        TgUser tgUser = tgUserService.getCurrentUser();
-        Integer soldPresaleNFT = purchaseService.getSoldPresaleNFTQuantity() + giftService.getGiftedNFTQuantity();
+    public UserLocation processText(TgUser user, String text, boolean redirected) {
+        Integer availableNftQuantity = getAvailableNftQuantity();
 
         if (redirected) {
-            sendBaseMessage(tgUser.getChatId(), soldPresaleNFT);
+            sendBaseMessage(user.getChatId(), availableNftQuantity);
             return getLocation();
         }
 
-        String text = update.getMessage().getText();
-        String chatId = tgUser.getChatId();
+        String chatId = user.getChatId();
         if ("Купить \uD83E\uDD92".equals(text)) {
             return UserLocation.PURCHASE;
         } else if ("Инвайт инфо \uD83D\uDC65".equals(text)) {
-            sendInviteInfo(chatId, tgUser);
-        } else if ("Мои жирафы".equals(text)) {
-            sendMyGiraffesInfo(chatId, tgUser);
+            sendInviteInfo(chatId, user);
+        } else if ("Мои жирафы \uD83E\uDD92".equals(text)) {
+            sendMyGiraffesInfo(chatId, user);
         } else if ("О нас \uD83D\uDCD6".equals(text)) {
-            getGiraffeInfo(chatId, soldPresaleNFT);
+            sendGiraffeInfo(chatId, availableNftQuantity);
+        } else if ("Настройки ⚙️".equals(text)) {
+            return UserLocation.SETTINGS;
         } else {
-            checkInvitation(text, tgUser);
-            sendBaseMessage(chatId, soldPresaleNFT);
+            checkInvitation(text, user);
+            sendBaseMessage(chatId, availableNftQuantity);
         }
 
         return getLocation();
     }
 
-    private void sendBaseMessage(String chatId, Integer soldPresaleNFT) throws TelegramApiException {
+    private int getAvailableNftQuantity() {
+        return purchaseProperties.getPresaleQuantity() - purchaseService.getSoldPresaleNFTQuantity() + giftService.getGiftedNFTQuantity();
+    }
+
+    private void sendBaseMessage(String chatId, Integer availableNftQuantity) throws TelegramApiException {
         tgSender.execute(
                 SendMessage.builder()
                         .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                                "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + getAvailableNftQuantity(soldPresaleNFT) + " \uD83E\uDD92 к приобритению. ")
+                                "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению. ")
                         .parseMode("html")
                         .chatId(chatId)
                         .replyMarkup(createBaseButtons())
@@ -84,9 +82,9 @@ public class BaseLocationProcessor implements LocationProcessor {
         );
     }
 
-    private void getGiraffeInfo(String chatId, Integer availablePresaleNFT) throws TelegramApiException {
+    private void sendGiraffeInfo(String chatId, Integer availableNftQuantity) throws TelegramApiException {
         String message = "Мы - первый инвестиционный DAO на блокчейне TON - <a href=\"https://telegra.ph/Giraffe-Capital---investicionnyj-DAO-na-blokchejne-TON-03-21\">GIRAFFE CAPITAL\uD83E\uDD92</a>\n" +
-                "В данный момент идёт этап <b>PRESALE</b>.\nОсталось nft - " + getAvailableNftQuantity(availablePresaleNFT) + "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
+                "В данный момент идёт этап <b>PRESALE</b>.\nОсталось nft - " + availableNftQuantity + "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
         tgSender.execute(
                 SendMessage.builder()
                         .text(message)
@@ -94,10 +92,6 @@ public class BaseLocationProcessor implements LocationProcessor {
                         .chatId(chatId)
                         .replyMarkup(createBaseButtons())
                         .build());
-    }
-
-    private Integer getAvailableNftQuantity(Integer soldPresaleNFT) {
-        return (purchaseProperties.getPresaleQuantity() - soldPresaleNFT);
     }
 
     private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {
@@ -160,7 +154,7 @@ public class BaseLocationProcessor implements LocationProcessor {
             return;
         }
 
-        if (!tgUserService.isUserJustCreated()) {
+        if (!TgUserService.isUserJustCreated()) {
             log.warn("User hasn't been just created: {}", tgUser);
             return;
         }

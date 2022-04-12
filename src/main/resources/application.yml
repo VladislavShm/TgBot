@@ -1,3 +1,12 @@
+server:
+  port: 5000
+
+logging:
+  level:
+    com:
+      giraffes:
+        tgbot: ${LOGGING_APP_LEVEL}
+
 spring:
   jpa:
     properties:
@@ -6,9 +15,6 @@ spring:
 
   liquibase:
     change-log: classpath:db/changelog-master.xml
-
-server:
-  port: 5000
 
 tg-bot:
   botUserName: ${BOT_USER_NAME}
@@ -20,8 +26,5 @@ purchase:
   presalePrice: ${PRESALE_NFT_PRICE}
   presaleQuantity: ${PRESALE_NFT_QUANTITY}
 
-logging:
-  level:
-    com:
-      giraffes:
-        tgbot: ${LOGGING_APP_LEVEL}
+ton-provider:
+  url: http://localhost:3001

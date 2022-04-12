@@ -36,6 +36,9 @@ public class TgUser {
     @JoinColumn(name = "invited_by")
     private TgUser invitedBy;
 
+    @Column(name = "wallet")
+    private String wallet;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

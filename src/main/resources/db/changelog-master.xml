@@ -12,5 +12,6 @@
     <include file="db/changelog/purchase-username-chatid.xml"/>
     <include file="db/changelog/add-user-location.xml"/>
     <include file="db/changelog/add-purchase-number.xml"/>
+    <include file="db/changelog/add-user-wallet.xml"/>
 
 </databaseChangeLog>

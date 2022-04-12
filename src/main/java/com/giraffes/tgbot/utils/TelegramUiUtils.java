@@ -12,13 +12,20 @@ import java.util.Collections;
 public class TelegramUiUtils {
     public static ReplyKeyboardMarkup createBaseButtons() {
         return ReplyKeyboardMarkup.builder()
-                .keyboardRow(
-                        new KeyboardRow(
-                                Arrays.asList(
-                                        new KeyboardButton("Купить \uD83E\uDD92"),
-                                        new KeyboardButton("Инвайт инфо \uD83D\uDC65"),
-                                        new KeyboardButton("Мои жирафы \uD83E\uDD92"),
-                                        new KeyboardButton("О нас \uD83D\uDCD6")
+                .keyboard(
+                        Arrays.asList(
+                                new KeyboardRow(
+                                        Arrays.asList(
+                                                new KeyboardButton("Купить \uD83E\uDD92"),
+                                                new KeyboardButton("Инвайт инфо \uD83D\uDC65"),
+                                                new KeyboardButton("Мои жирафы \uD83E\uDD92")
+                                        )
+                                ),
+                                new KeyboardRow(
+                                        Arrays.asList(
+                                                new KeyboardButton("О нас \uD83D\uDCD6"),
+                                                new KeyboardButton("Настройки ⚙️")
+                                        )
                                 )
                         )
                 )
@@ -26,16 +33,18 @@ public class TelegramUiUtils {
                 .build();
     }
 
-    public static ReplyKeyboardMarkup createCancelButton() {
+    public static ReplyKeyboardMarkup createCancelButtonKeyboard() {
         return ReplyKeyboardMarkup.builder()
-                .keyboardRow(
-                        new KeyboardRow(
-                                Collections.singletonList(
-                                        new KeyboardButton("Отмена")
-                                )
-                        )
-                )
+                .keyboardRow(createCancelButtonRow())
                 .resizeKeyboard(true)
                 .build();
+    }
+
+    public static KeyboardRow createCancelButtonRow() {
+        return new KeyboardRow(
+                Collections.singletonList(
+                        new KeyboardButton("Отмена")
+                )
+        );
     }
 }

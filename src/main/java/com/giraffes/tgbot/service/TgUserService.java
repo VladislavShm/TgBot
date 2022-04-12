@@ -22,8 +22,8 @@ public class TgUserService {
     private final TgUserRepository tgUserRepository;
     private final BotProperties botProperties;
 
-    private final ThreadLocal<Boolean> USER_JUST_CREATED = new ThreadLocal<>();
-    private final ThreadLocal<TgUser> CURRENT_USER = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> USER_JUST_CREATED = new ThreadLocal<>();
+    private static final ThreadLocal<TgUser> CURRENT_USER = new ThreadLocal<>();
 
     public String createInvitationLink(TgUser tgUser) {
         String uniqueCode = new String(Base64.getEncoder().encode(("base64" + tgUser.getId()).getBytes(StandardCharsets.UTF_8)));
@@ -74,11 +74,11 @@ public class TgUserService {
         return this.tgUserRepository.findByChatId(chatId);
     }
 
-    public boolean isUserJustCreated() {
+    public static boolean isUserJustCreated() {
         return USER_JUST_CREATED.get();
     }
 
-    public TgUser getCurrentUser() {
+    public static TgUser getCurrentUser() {
         return CURRENT_USER.get();
     }
 
