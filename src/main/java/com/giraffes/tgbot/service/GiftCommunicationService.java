@@ -1,13 +1,12 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.entity.UserLocation;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
 
@@ -15,7 +14,7 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
 @Service
 @RequiredArgsConstructor
 public class GiftCommunicationService {
-    private final AbsSender tgSender;
+    private final TelegramSenderService telegramSenderService;
 
     @SneakyThrows
     public void sendGiftNotification(TgUser tgUser, String wallet) {
@@ -28,13 +27,7 @@ public class GiftCommunicationService {
                     "Мы отправим Вашу NFT сразу после окончания этапа presale.";
         }
 
-        tgSender.execute(
-                SendMessage.builder()
-                        .text(message)
-                        .parseMode("html")
-                        .chatId(tgUser.getChatId())
-                        .replyMarkup(createBaseButtons())
-                        .build()
-        );
+        tgUser.setLocation(UserLocation.BASE);
+        telegramSenderService.send(message, createBaseButtons(), tgUser.getChatId());
     }
 }

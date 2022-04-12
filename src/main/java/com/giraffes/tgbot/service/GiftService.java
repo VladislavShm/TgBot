@@ -7,6 +7,7 @@ import com.giraffes.tgbot.model.UpdateGiftDto;
 import com.giraffes.tgbot.repository.GiftRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -35,7 +36,7 @@ public class GiftService {
     }
 
     public Integer getGiftedNFTQuantity() {
-        return giftRepository.getGiftedNFTQuantity();
+        return ObjectUtils.defaultIfNull(giftRepository.getGiftedNFTQuantity(), 0);
     }
 
     public void updateGift(UpdateGiftDto giftDto) {
@@ -51,6 +52,6 @@ public class GiftService {
     }
 
     public Integer giftsCount(TgUser tgUser) {
-        return giftRepository.giftsCount(tgUser);
+        return ObjectUtils.defaultIfNull(giftRepository.giftsCount(tgUser), 0);
     }
 }

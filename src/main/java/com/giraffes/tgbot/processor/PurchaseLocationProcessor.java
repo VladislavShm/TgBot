@@ -6,8 +6,6 @@ import com.giraffes.tgbot.service.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.regex.Pattern;
 
@@ -29,12 +27,9 @@ public class PurchaseLocationProcessor extends LocationProcessor {
     @SneakyThrows
     public UserLocation processText(TgUser user, String text, boolean redirected) {
         if (redirected) {
-            tgSender.execute(
-                    SendMessage.builder()
-                            .text("Пожалуйста, укажите количество \uD83E\uDD92 для покупки")
-                            .chatId(user.getChatId())
-                            .replyMarkup(createCancelButtonKeyboard())
-                            .build()
+            telegramSenderService.send(
+                    "Пожалуйста, укажите количество \uD83E\uDD92 для покупки",
+                    createCancelButtonKeyboard()
             );
 
             return getLocation();
@@ -46,30 +41,23 @@ public class PurchaseLocationProcessor extends LocationProcessor {
             sendPurchaseLink(user, Integer.parseInt(text));
             return UserLocation.BASE;
         } else {
-            sendInvalidInput(user);
+            sendInvalidInput();
         }
 
         return getLocation();
     }
 
-    private void sendPurchaseLink(TgUser tgUser, Integer quantity) throws TelegramApiException {
-        tgSender.execute(
-                SendMessage.builder()
-                        .text(purchaseService.createPurchaseMessage(tgUser, quantity))
-                        .parseMode("html")
-                        .chatId(tgUser.getChatId())
-                        .replyMarkup(createCancelButtonKeyboard())
-                        .build()
+    private void sendPurchaseLink(TgUser tgUser, Integer quantity) {
+        telegramSenderService.send(
+                purchaseService.createPurchaseMessage(tgUser, quantity),
+                createCancelButtonKeyboard()
         );
     }
 
-    private void sendInvalidInput(TgUser tgUser) throws TelegramApiException {
-        tgSender.execute(
-                SendMessage.builder()
-                        .text("Неверный формат.\n\nПожалуйста, укажите количество \uD83E\uDD92 для покупки")
-                        .chatId(tgUser.getChatId())
-                        .replyMarkup(createCancelButtonKeyboard())
-                        .build()
+    private void sendInvalidInput() {
+        telegramSenderService.send(
+                "Неверный формат.\n\nПожалуйста, укажите количество \uD83E\uDD92 для покупки",
+                createCancelButtonKeyboard()
         );
     }
 }

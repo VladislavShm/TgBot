@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Base64;
 import java.util.Optional;
@@ -43,60 +41,53 @@ public class BaseLocationProcessor extends LocationProcessor {
         Integer availableNftQuantity = getAvailableNftQuantity();
 
         if (redirected) {
-            sendBaseMessage(user.getChatId(), availableNftQuantity);
+            sendBaseMessage(availableNftQuantity);
             return getLocation();
         }
 
-        String chatId = user.getChatId();
         if ("Купить \uD83E\uDD92".equals(text)) {
             return UserLocation.PURCHASE;
         } else if ("Инвайт инфо \uD83D\uDC65".equals(text)) {
-            sendInviteInfo(chatId, user);
+            sendInviteInfo(user);
         } else if ("Мои жирафы \uD83E\uDD92".equals(text)) {
-            sendMyGiraffesInfo(chatId, user);
+            sendMyGiraffesInfo(user);
         } else if ("О нас \uD83D\uDCD6".equals(text)) {
-            sendGiraffeInfo(chatId, availableNftQuantity);
+            sendGiraffeInfo(availableNftQuantity);
         } else if ("Настройки ⚙️".equals(text)) {
             return UserLocation.SETTINGS;
         } else {
             checkInvitation(text, user);
-            sendBaseMessage(chatId, availableNftQuantity);
+            sendBaseMessage(availableNftQuantity);
         }
 
         return getLocation();
     }
 
     private int getAvailableNftQuantity() {
-        return purchaseProperties.getPresaleQuantity() - purchaseService.getSoldPresaleNFTQuantity() + giftService.getGiftedNFTQuantity();
+        return purchaseProperties.getPresaleQuantity() - (purchaseService.getSoldPresaleNFTQuantity() + giftService.getGiftedNFTQuantity());
     }
 
-    private void sendBaseMessage(String chatId, Integer availableNftQuantity) throws TelegramApiException {
-        tgSender.execute(
-                SendMessage.builder()
-                        .text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                                "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению. ")
-                        .parseMode("html")
-                        .chatId(chatId)
-                        .replyMarkup(createBaseButtons())
-                        .build()
+    private void sendBaseMessage(Integer availableNftQuantity) {
+        telegramSenderService.send(
+                "Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
+                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению. ",
+                createBaseButtons()
         );
     }
 
-    private void sendGiraffeInfo(String chatId, Integer availableNftQuantity) throws TelegramApiException {
-        String message = "Мы - первый инвестиционный DAO на блокчейне TON - <a href=\"https://telegra.ph/Giraffe-Capital---investicionnyj-DAO-na-blokchejne-TON-03-21\">GIRAFFE CAPITAL\uD83E\uDD92</a>\n" +
-                "В данный момент идёт этап <b>PRESALE</b>.\nОсталось nft - " + availableNftQuantity + "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
-        tgSender.execute(
-                SendMessage.builder()
-                        .text(message)
-                        .parseMode("html")
-                        .chatId(chatId)
-                        .replyMarkup(createBaseButtons())
-                        .build());
+    private void sendGiraffeInfo(Integer availableNftQuantity) {
+        String message = "Мы - первый инвестиционный DAO на блокчейне TON - " +
+                "<a href=\"https://telegra.ph/Giraffe-Capital---investicionnyj-DAO-na-blokchejne-TON-03-21\">GIRAFFE CAPITAL\uD83E\uDD92</a>\n" +
+                "В данный момент идёт этап <b>PRESALE</b>.\nОсталось nft - " +
+                availableNftQuantity +
+                "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
+
+        telegramSenderService.send(message, createBaseButtons());
     }
 
-    private void sendMyGiraffesInfo(String chatId, TgUser tgUser) throws TelegramApiException {
-        Integer giftsCount = ObjectUtils.defaultIfNull(giftService.giftsCount(tgUser), 0);
-        Integer purchasesCount = purchaseService.purchasesCount(tgUser);
+    private void sendMyGiraffesInfo(TgUser user) {
+        Integer giftsCount = ObjectUtils.defaultIfNull(giftService.giftsCount(user), 0);
+        Integer purchasesCount = purchaseService.approvedPurchasesCount(user);
         String message = String.format(
                 "На данный момент Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe\n" +
@@ -104,33 +95,21 @@ public class BaseLocationProcessor extends LocationProcessor {
                 ObjectUtils.defaultIfNull(purchasesCount, 0), giftsCount > 0 ? " и выиграли <i><b>" + giftsCount + "</b></i>" : ""
         );
 
-        tgSender.execute(
-                SendMessage.builder()
-                        .text(message)
-                        .parseMode("html")
-                        .chatId(chatId)
-                        .replyMarkup(createBaseButtons())
-                        .build()
+        telegramSenderService.send(
+                message,
+                createBaseButtons()
         );
     }
 
-    private void sendInviteInfo(String chatId, TgUser tgUser) throws TelegramApiException {
-        tgSender.execute(
-                SendMessage.builder()
-                        .text("На данный момент Вы пригласили <i><b>" + tgUserService.invitedCount(tgUser) + "</b></i> человек")
-                        .parseMode("html")
-                        .chatId(chatId)
-                        .replyMarkup(createBaseButtons())
-                        .build()
+    private void sendInviteInfo(TgUser tgUser) {
+        telegramSenderService.send(
+                "На данный момент Вы пригласили <i><b>" + tgUserService.invitedCount(tgUser) + "</b></i> человек",
+                createBaseButtons()
         );
 
-        String message = "Ваша персональная ссылка: \n\n" + tgUserService.createInvitationLink(tgUser);
-        tgSender.execute(
-                SendMessage.builder()
-                        .text(message)
-                        .chatId(chatId)
-                        .replyMarkup(createBaseButtons())
-                        .build()
+        telegramSenderService.send(
+                "Ваша персональная ссылка: \n\n" + tgUserService.createInvitationLink(tgUser),
+                createBaseButtons()
         );
     }
 

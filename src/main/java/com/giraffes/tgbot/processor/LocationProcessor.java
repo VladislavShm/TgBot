@@ -2,14 +2,14 @@ package com.giraffes.tgbot.processor;
 
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserLocation;
+import com.giraffes.tgbot.service.TelegramSenderService;
 import com.giraffes.tgbot.service.TgUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 public abstract class LocationProcessor {
     @Autowired
-    AbsSender tgSender;
+    protected TelegramSenderService telegramSenderService;
 
     public abstract UserLocation getLocation();
 
