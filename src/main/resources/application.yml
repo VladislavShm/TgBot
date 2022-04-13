@@ -27,4 +27,4 @@ purchase:
   presaleQuantity: ${PRESALE_NFT_QUANTITY}
 
 ton-provider:
-  url: http://localhost:3001
+  url: ${TON_PROVIDER_URL}
