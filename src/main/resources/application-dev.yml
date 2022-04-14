@@ -9,8 +9,8 @@ tg-bot:
 
 purchase:
   wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
-  basePrice: 8
-  presalePrice: 4
+  basePrice: 10
+  presalePrice: 6
   presaleQuantity: 300
 
 logging:

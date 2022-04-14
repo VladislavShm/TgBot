@@ -92,6 +92,8 @@ public class PurchaseService {
             if (buyer != null) {
                 chatId = buyer.getChatId();
             }
+        } else if (StringUtils.isNotEmpty(chatId)) {
+            buyer = tgUserService.findByChatId(chatId);
         }
 
         BigInteger receivedNumber = !StringUtils.isBlank(transaction.getNumber()) && NUMBER_PATTERN.matcher(transaction.getNumber()).find()
@@ -103,8 +105,8 @@ public class PurchaseService {
         Integer number = null;
         boolean approved = false;
         if (receivedNumber != null && buyer != null) {
-            BigInteger price = new BigInteger(String.valueOf(calculateNftPrice(buyer) * 1000000000));
-            BigInteger expectedAmount = receivedNumber.multiply(price);
+            BigInteger nftPrice = new BigInteger(String.valueOf(calculateNftPrice(buyer))).multiply(new BigInteger("1000000000"));
+            BigInteger expectedAmount = receivedNumber.multiply(nftPrice);
             if (expectedAmount.equals(value)) {
                 number = receivedNumber.intValue();
                 approved = true;
