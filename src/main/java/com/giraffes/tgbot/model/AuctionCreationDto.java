@@ -31,4 +31,7 @@ public class AuctionCreationDto {
 
     @NotNull
     private BigInteger priceReductionMinutes;
+
+    @NotNull
+    private BigInteger minimalStep;
 }

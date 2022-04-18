@@ -161,15 +161,19 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
     private void sendCurrentAuctionState(Auction auction) {
         String message;
         LocalDateTime now = LocalDateTime.now();
+        BigInteger minimumAllowBid = auctionService.calculateMinimumAllowBid(auction);
         if (now.isAfter(auction.getStartDateTime())) {
             UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
             if (highestBid != null) {
                 long minutesLeft = Math.abs(60 - ChronoUnit.MINUTES.between(now, highestBid.getUpdateDateTime()));
                 message = String.format(
                         "Текущая максимальная сделаная ставка: %s TON\n" +
+                                "Минимальная допустимая ставка: %s TON\n" +
                                 "У Вас осталось <i><b>%s</b></i> минут чтобы перебить ставку.\n" +
                                 "Отправьте количество TON, которые Вы хотите поставить.",
-                        TonCoinUtils.toHumanReadable(highestBid.getBid()), minutesLeft
+                        TonCoinUtils.toHumanReadable(highestBid.getBid()),
+                        TonCoinUtils.toHumanReadable(minimumAllowBid),
+                        minutesLeft
                 );
             } else {
                 message = String.format(

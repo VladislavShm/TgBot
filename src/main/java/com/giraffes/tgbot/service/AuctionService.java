@@ -41,6 +41,7 @@ public class AuctionService {
         auction.setStartPrice(auctionCreationDto.getStartPrice());
         auction.setPriceReductionMinutes(auctionCreationDto.getPriceReductionMinutes());
         auction.setPriceReductionValue(auctionCreationDto.getPriceReductionValue());
+        auction.setMinimalStep(auctionCreationDto.getMinimalStep());
         return auctionRepository.save(auction);
     }
 
@@ -125,7 +126,7 @@ public class AuctionService {
     public BigInteger calculateMinimumAllowBid(Auction auction) {
         UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
         if (highestBid != null) {
-            return highestBid.getBid().add(auction.getPriceReductionValue());
+            return highestBid.getBid().add(auction.getMinimalStep());
         }
 
         return AuctionService.calculateCurrentReducedPrice(auction);

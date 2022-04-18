@@ -40,7 +40,7 @@ public class AuctionSchedulerService implements ApplicationListener<ApplicationS
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent event) {
-        log.info("Schedule auctions events on application start up");
+        log.debug("Schedule auctions events on application start up");
 
         List<Auction> active = auctionService.findActive();
         List<Auction> upcoming = auctionService.findUpcoming();
@@ -53,7 +53,7 @@ public class AuctionSchedulerService implements ApplicationListener<ApplicationS
             scheduleAuctionFinish(auction);
         }
 
-        log.info("Auctions events scheduled");
+        log.debug("Auctions events scheduled");
     }
 
     public void scheduleAuctionStart(Auction auction) {
@@ -64,7 +64,7 @@ public class AuctionSchedulerService implements ApplicationListener<ApplicationS
                         auction.getStartDateTime().toInstant(ZoneOffset.UTC)
                 )
         )).ifPresent(scheduler -> scheduler.cancel(false));
-        log.info("Auction {} start event has been scheduled at: {}", auction.getId(), auction.getStartDateTime());
+        log.debug("Auction {} start event has been scheduled at: {}", auction.getId(), auction.getStartDateTime());
     }
 
     public void scheduleAuctionFinish(Auction auction) {
@@ -76,6 +76,6 @@ public class AuctionSchedulerService implements ApplicationListener<ApplicationS
                         dateTime.toInstant(ZoneOffset.UTC)
                 )
         )).ifPresent(scheduler -> scheduler.cancel(false));
-        log.info("Auction {} finish event has been scheduled at: {}", auction.getId(), dateTime);
+        log.debug("Auction {} finish event has been scheduled at: {}", auction.getId(), dateTime);
     }
 }

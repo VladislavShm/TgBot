@@ -58,6 +58,9 @@ public class Auction {
     @Column(nullable = false)
     private BigInteger priceReductionMinutes;
 
+    @Column(nullable = false)
+    private BigInteger minimalStep;
+
     @CreationTimestamp
     private LocalDateTime createDateTime;
 

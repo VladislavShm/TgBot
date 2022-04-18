@@ -65,6 +65,7 @@ public class PurchaseService {
         Set<String> registeredTransactionIds = new HashSet<>(purchaseRepository.findAllTransactionIds());
         for (TransactionDto transaction : transactions) {
             if (registeredTransactionIds.contains(transaction.getTransactionId())) {
+                log.info("Skipping transaction {} because it has already been registered", transaction.getTransactionId());
                 continue;
             }
 
@@ -73,17 +74,22 @@ public class PurchaseService {
 
         sendPurchaseNotifications(newBuyers);
 
-        log.info("Registered new purchases: {}", newTransactionIds);
+        if (newTransactionIds.isEmpty()) {
+            log.info("No new transactions have been registered");
+        } else {
+            log.debug("Registered new purchases: {}", newTransactionIds);
+        }
     }
 
     private void createNewPurchaseFromTransaction(Set<String> newBuyers, List<String> newTransactionIds, TransactionDto transaction) {
+        log.info("Registering new transaction: {}", transaction.getTransactionId());
         LocalDateTime datetime;
         try {
             datetime = Instant.ofEpochSecond(transaction.getDatetime())
                     .atZone(ZoneOffset.UTC)
                     .toLocalDateTime();
         } catch (Exception e) {
-            log.error("Can't parse incoming datetime {} for {}. ", transaction.getDatetime(), transaction.getTransactionId(), e);
+            log.error("Can't parse incoming datetime {} for {}. Skipping transaction.", transaction.getDatetime(), transaction.getTransactionId(), e);
             return;
         }
 
@@ -96,6 +102,10 @@ public class PurchaseService {
             }
         } else if (StringUtils.isNotEmpty(chatId)) {
             buyer = tgUserService.findByChatId(chatId);
+        }
+
+        if (StringUtils.isBlank(chatId)) {
+            log.warn("Can't determine chat ID for transaction: {}", transaction.getTransactionId());
         }
 
         BigInteger receivedNumber = !StringUtils.isBlank(transaction.getNumber()) && NUMBER_PATTERN.matcher(transaction.getNumber()).find()
@@ -112,7 +122,11 @@ public class PurchaseService {
             if (expectedAmount.equals(value)) {
                 number = receivedNumber.intValue();
                 approved = true;
+            } else {
+                log.warn("Actual transaction amount {} is less than expected {} for {}", value, expectedAmount, transaction.getTransactionId());
             }
+        } else {
+            log.warn("Transaction with the received number and the buyer cannot be approved: {}, {}", receivedNumber, buyer);
         }
 
         Purchase purchase = new Purchase();
@@ -123,7 +137,8 @@ public class PurchaseService {
         purchase.setChatId(chatId);
         purchase.setNumber(number);
         purchase.setApproved(approved);
-        purchaseRepository.save(purchase);
+        purchase = purchaseRepository.save(purchase);
+        log.debug("Created purchase: {}", purchase);
 
         newTransactionIds.add(purchase.getTransactionId());
         if (StringUtils.isNotBlank(chatId) && purchase.isApproved()) {
