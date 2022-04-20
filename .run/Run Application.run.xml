@@ -16,7 +16,7 @@
     </extension>
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.giraffes.tgbot.TgBotApplication" />
     <option name="ACTIVE_PROFILES" value="dev" />
-    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
