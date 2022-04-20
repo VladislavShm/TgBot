@@ -17,7 +17,7 @@ public class UserAuctionActivityService {
     }
 
     public boolean isParticipant(Auction auction, TgUser user) {
-        return userAuctionActivityRepository.findByAuctionAndUser(auction, user) != null;
+        return userAuctionActivityRepository.findByAuctionAndUserAndActiveIsTrue(auction, user) != null;
     }
 
     public UserAuctionActivity findHighestBid(Auction auction) {

@@ -1,27 +1,35 @@
-package com.giraffes.tgbot.processor;
+package com.giraffes.tgbot.processor.auction;
 
-import com.giraffes.tgbot.entity.*;
+import com.giraffes.tgbot.entity.Auction;
+import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.entity.UserAuctionActivity;
 import com.giraffes.tgbot.service.AuctionService;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 import static com.giraffes.tgbot.entity.LocationAttribute.AUCTION_ORDER_NUMBER;
 import static com.giraffes.tgbot.entity.LocationAttribute.SUGGESTED_AUCTION_BID;
-import static com.giraffes.tgbot.utils.TelegramUiUtils.*;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.createBackButtonRow;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.createYesNoKeyboard;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AuctionParticipationLocationProcessor extends LocationProcessor {
+public class AuctionParticipationLocationProcessor extends AuctionLocationProcessor {
     private static final Pattern BID_PATTERN = Pattern.compile("^\\d+\\.?\\d*$");
 
     private final UserAuctionActivityService userAuctionActivityService;
@@ -33,33 +41,15 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
     }
 
     @Override
-    Location processText(TgUser user, String text, boolean redirected) {
-        String auctionOrderNumber = user.getLocationAttributes().get(LocationAttribute.AUCTION_ORDER_NUMBER);
-        if (StringUtils.isBlank(auctionOrderNumber)) {
-            log.warn("User {} tried to access auction without specified auction order number. Text: {}", user, text);
-            clearUserLocationAttributes(user);
-            return Location.AUCTIONS_BROWSE;
+    protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
+        if (redirected || "Ок".equals(text)) {
+            sendCurrentAuctionState(auction);
+            return getLocation();
         }
 
         if ("Назад".equals(text)) {
             clearUserLocationAttributes(user);
             return Location.AUCTIONS_BROWSE;
-        }
-
-        Auction auction = auctionService.findActiveByOrderNumber(Integer.valueOf(auctionOrderNumber));
-        if (auction == null) {
-            telegramSenderService.send(
-                    "Похоже, что данный аукцион закончился. Пожалуйста, ожидайте результатов.",
-                    createBackButtonKeyboard()
-            );
-
-            clearUserLocationAttributes(user);
-            return Location.AUCTIONS_BROWSE;
-        }
-
-        if (redirected || "Ок".equals(text)) {
-            sendCurrentAuctionState(auction);
-            return getLocation();
         }
 
         if ("Да".equals(text)) {
@@ -74,6 +64,10 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
             return getLocation();
         }
 
+        if ("Прекратить участие".equals(text)) {
+            return Location.AUCTION_UNSUBSCRIBE;
+        }
+
         if (BID_PATTERN.matcher(text).find()) {
             processBidSuggest(user, text, auction);
         } else {
@@ -86,7 +80,7 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
     private void sendInvalidInput() {
         telegramSenderService.send(
                 "Неверный формат.\nОтправьте количество TON, которые Вы хотите поставить.",
-                createCancelButtonKeyboard()
+                createBaseButtons()
         );
     }
 
@@ -95,7 +89,7 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
         if (auctionBid.compareTo(BigInteger.ZERO) <= 0) {
             telegramSenderService.send(
                     "Пожалуйста, укажите значение больше 0",
-                    createBackButtonKeyboard()
+                    createBaseButtons()
             );
 
             return;
@@ -122,7 +116,7 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
     private void sendNotEnoughCoins() {
         telegramSenderService.send(
                 "К сожалению, на Вашем кошельке недостаточно средств для совершения данной ставки.",
-                createBackButtonKeyboard()
+                createBaseButtons()
         );
     }
 
@@ -143,7 +137,7 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
         UserAuctionActivity activeUserAuctionActivity = userAuctionActivityService.findActivity(auction, user);
         activeUserAuctionActivity.setBid(auctionBid);
 
-        telegramSenderService.send("Ваша ставка принята!", createBackButtonKeyboard());
+        telegramSenderService.send("Ваша ставка принята!", createBaseButtons());
 
         user.getLocationAttributes().remove(SUGGESTED_AUCTION_BID);
     }
@@ -154,7 +148,7 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
                         "Минимальная допустимая ставка %s TON. Пожалуйста, укажите количество TON большее или равное указанной сумме.",
                         TonCoinUtils.toHumanReadable(minimumAllowBid)
                 ),
-                createBackButtonKeyboard()
+                createBaseButtons()
         );
     }
 
@@ -165,7 +159,7 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
         if (now.isAfter(auction.getStartDateTime())) {
             UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
             if (highestBid != null) {
-                long minutesLeft = Math.abs(60 - ChronoUnit.MINUTES.between(now, highestBid.getUpdateDateTime()));
+                long minutesLeft = Math.abs(60 - Math.abs(ChronoUnit.MINUTES.between(now, highestBid.getUpdateDateTime())));
                 message = String.format(
                         "Текущая максимальная сделаная ставка: %s TON\n" +
                                 "Минимальная допустимая ставка: %s TON\n" +
@@ -192,11 +186,25 @@ public class AuctionParticipationLocationProcessor extends LocationProcessor {
 
         telegramSenderService.send(
                 message,
-                createBackButtonKeyboard()
+                createBaseButtons()
         );
     }
 
-    private void clearUserLocationAttributes(TgUser user) {
+    private ReplyKeyboardMarkup createBaseButtons() {
+        return ReplyKeyboardMarkup.builder()
+                .keyboard(Arrays.asList(
+                        new KeyboardRow(
+                                Collections.singletonList(
+                                        new KeyboardButton("Прекратить участие")
+                                )
+                        ),
+                        createBackButtonRow()))
+                .resizeKeyboard(true)
+                .build();
+    }
+
+    @Override
+    protected void clearUserLocationAttributes(TgUser user) {
         user.getLocationAttributes().remove(AUCTION_ORDER_NUMBER);
         user.getLocationAttributes().remove(SUGGESTED_AUCTION_BID);
     }

@@ -24,7 +24,7 @@ public class SettingsLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    public Location processText(TgUser user, String text, boolean redirected) {
+    protected Location processText(TgUser user, String text, boolean redirected) {
         if (redirected || "Ок".equals(text)) {
             sendDefaultSettingsMessage();
         } else if ("Отмена".equals(text)) {

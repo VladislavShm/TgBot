@@ -17,7 +17,7 @@ public class StartAuctionScheduler {
     private final TelegramSenderService telegramSenderService;
     private final TgUserService tgUserService;
 
-    public void run(Long auctionOrderNumber) {
+    public void run(Integer auctionOrderNumber) {
         List<String> chatIds = tgUserService.queryAllChatIds();
         String message = String.format("Начался аукцион № %d. Чтобы принять в нем участие, пожалуйста, пройдите в раздел с аукционами.", auctionOrderNumber);
         for (String chatId : chatIds) {

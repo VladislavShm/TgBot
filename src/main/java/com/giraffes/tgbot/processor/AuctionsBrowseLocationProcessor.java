@@ -1,9 +1,6 @@
 package com.giraffes.tgbot.processor;
 
-import com.giraffes.tgbot.entity.Auction;
-import com.giraffes.tgbot.entity.Location;
-import com.giraffes.tgbot.entity.LocationAttribute;
-import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.entity.*;
 import com.giraffes.tgbot.service.AuctionService;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
@@ -39,7 +36,7 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
     }
 
     @Override
-    public Location processText(TgUser user, String text, boolean redirected) {
+    protected Location processText(TgUser user, String text, boolean redirected) {
         if (redirected || "Ок".equals(text)) {
             sendBaseMessage(user);
         } else if (REDIRECT_TO_WALLET_SETTINGS_BTN.equals(text) && StringUtils.isBlank(user.getWallet())) {

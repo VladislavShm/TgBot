@@ -12,6 +12,8 @@ public interface UserAuctionActivityRepository extends JpaRepository<UserAuction
 
     UserAuctionActivity findByAuctionAndUser(Auction auction, TgUser user);
 
+    UserAuctionActivity findByAuctionAndUserAndActiveIsTrue(Auction auction, TgUser user);
+
     @Query(
             "select uaa from UserAuctionActivity uaa " +
                     "where uaa.auction = :auction and uaa.active = true and uaa.bid = " +

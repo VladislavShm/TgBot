@@ -1,11 +1,12 @@
-package com.giraffes.tgbot.processor;
+package com.giraffes.tgbot.processor.auction;
 
-import com.giraffes.tgbot.entity.*;
-import com.giraffes.tgbot.service.AuctionService;
+import com.giraffes.tgbot.entity.Auction;
+import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.entity.UserAuctionActivity;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import static com.giraffes.tgbot.entity.LocationAttribute.AUCTION_ORDER_NUMBER;
@@ -15,9 +16,8 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.createYesNoKeyboard;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class AuctionRegistrationProcessor extends LocationProcessor {
+public class AuctionRegistrationProcessor extends AuctionLocationProcessor {
     private final UserAuctionActivityService userAuctionActivityService;
-    private final AuctionService auctionService;
 
     @Override
     public Location getLocation() {
@@ -25,24 +25,7 @@ public class AuctionRegistrationProcessor extends LocationProcessor {
     }
 
     @Override
-    Location processText(TgUser user, String text, boolean redirected) {
-        String auctionOrderNumber = user.getLocationAttributes().get(LocationAttribute.AUCTION_ORDER_NUMBER);
-        if (StringUtils.isBlank(auctionOrderNumber)) {
-            log.warn("User {} tried to access auction without specified auction order number. Text: {}", user, text);
-            return Location.AUCTIONS_BROWSE;
-        }
-
-        Auction auction = auctionService.findActiveByOrderNumber(Integer.valueOf(auctionOrderNumber));
-        if (auction == null) {
-            telegramSenderService.send(
-                    "Похоже, что данный аукцион закончился. Возможно Вам в следующий раз повезет больше.",
-                    createBackButtonKeyboard()
-            );
-
-            user.getLocationAttributes().remove(AUCTION_ORDER_NUMBER);
-            return Location.AUCTIONS_BROWSE;
-        }
-
+    protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
         if (redirected || "Ок".equals(text)) {
             sendConfirmToParticipateInAuction();
             return getLocation();
@@ -51,8 +34,10 @@ public class AuctionRegistrationProcessor extends LocationProcessor {
         if ("Да".equals(text)) {
             registerParticipantIfNeeded(user, auction);
             return Location.AUCTION_PARTICIPATION;
-        } else if ("Нет".equals(text)) {
-            user.getLocationAttributes().remove(AUCTION_ORDER_NUMBER);
+        }
+
+        if ("Нет".equals(text)) {
+            clearUserLocationAttributes(user);
             return Location.AUCTIONS_BROWSE;
         }
 
@@ -60,13 +45,20 @@ public class AuctionRegistrationProcessor extends LocationProcessor {
     }
 
     private void registerParticipantIfNeeded(TgUser user, Auction auction) {
-        UserAuctionActivity activeUserAuctionActivity = userAuctionActivityService.findActivity(auction, user);
-        if (activeUserAuctionActivity == null) {
+        UserAuctionActivity userAuctionActivity = userAuctionActivityService.findActivity(auction, user);
+        if (userAuctionActivity == null) {
             userAuctionActivityService.registerParticipant(auction, user);
             telegramSenderService.send(
                     "Вы зарегистрированы в качестве участника!",
                     createBackButtonKeyboard()
             );
+        } else if (!userAuctionActivity.isActive()) {
+            telegramSenderService.send(
+                    "Рады видеть Вас снова в качестве участника данного аукциона!",
+                    createBackButtonKeyboard()
+            );
+
+            userAuctionActivity.setActive(true);
         }
     }
 
@@ -77,5 +69,10 @@ public class AuctionRegistrationProcessor extends LocationProcessor {
                 message,
                 createYesNoKeyboard()
         );
+    }
+
+    @Override
+    protected void clearUserLocationAttributes(TgUser user) {
+        user.getLocationAttributes().remove(AUCTION_ORDER_NUMBER);
     }
 }

@@ -17,8 +17,7 @@ public abstract class LocationProcessor {
         return processText(TgUserService.getCurrentUser(), update.getMessage().getText(), redirected);
     }
 
-    Location processText(TgUser user, String text, boolean redirected) {
+    protected Location processText(TgUser user, String text, boolean redirected) {
         throw new RuntimeException("Location processor " + getLocation() + " doesn't support text messages");
     }
-
 }

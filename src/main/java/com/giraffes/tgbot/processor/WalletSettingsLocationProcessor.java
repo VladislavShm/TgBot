@@ -23,7 +23,7 @@ public class WalletSettingsLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    public Location processText(TgUser tgUser, String text, boolean redirected) {
+    protected Location processText(TgUser tgUser, String text, boolean redirected) {
         if (redirected || "Ок".equals(text)) {
             askToSpecifyWallet(tgUser);
         } else if ("Отмена".equals(text)) {

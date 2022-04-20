@@ -60,7 +60,7 @@ public class AuctionSchedulerService implements ApplicationListener<ApplicationS
         Optional.ofNullable(START_AUC_SCHEDULERS.put(
                 auction.getId(),
                 taskScheduler.schedule(
-                        () -> startAuctionScheduler.run(auction.getId()),
+                        () -> startAuctionScheduler.run(auction.getOrderNumber()),
                         auction.getStartDateTime().toInstant(ZoneOffset.UTC)
                 )
         )).ifPresent(scheduler -> scheduler.cancel(false));

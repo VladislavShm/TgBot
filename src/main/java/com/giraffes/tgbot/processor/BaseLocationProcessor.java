@@ -37,7 +37,7 @@ public class BaseLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    public Location processText(TgUser user, String text, boolean redirected) {
+    protected Location processText(TgUser user, String text, boolean redirected) {
         Integer availableNftQuantity = getAvailableNftQuantity();
 
         if (redirected || "Ок".equals(text)) {
