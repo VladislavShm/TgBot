@@ -13,9 +13,9 @@ public interface TgUserRepository extends JpaRepository<TgUser, Long> {
     TgUser findByName(String name);
     TgUser findByChatId(String chatId);
 
-    @Query("select count(tgUser.id) from TgUser tgUser where tgUser.invitedBy = :tgUser")
+    @Query("select count(u.id) from TgUser u where u.invitedBy = :tgUser and u.kicked = false")
     Integer invitedCount(@Param("tgUser") TgUser tgUser);
 
-    @Query("select u.chatId from TgUser u")
+    @Query("select u.chatId from TgUser u where u.kicked = false")
     List<String> queryAllChatIds();
 }

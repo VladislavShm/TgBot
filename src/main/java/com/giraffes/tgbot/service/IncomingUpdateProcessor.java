@@ -1,16 +1,19 @@
 package com.giraffes.tgbot.service;
 
-import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.processor.LocationProcessor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.meta.api.objects.ChatMemberUpdated;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +42,18 @@ public class IncomingUpdateProcessor {
             while (user.getLocation() != newUserLocation) {
                 user.setLocation(newUserLocation);
                 newUserLocation = processors.get(newUserLocation).process(update, true);
+            }
+        } else if (update.hasMyChatMember()) {
+            Optional<String> newStatus = Optional.ofNullable(update.getMyChatMember())
+                    .map(ChatMemberUpdated::getNewChatMember)
+                    .map(ChatMember::getStatus);
+
+            if (newStatus.filter("kicked"::equals).isPresent()) {
+                tgUserService.onUserBecomeKicked(user);
+            } else if (newStatus.filter("member"::equals).isPresent()) {
+                tgUserService.onUserBecomeMember(user);
+            } else {
+                log.warn("Unsupported new member status: {}", newStatus.orElse(null));
             }
         } else {
             log.warn("Received an update without a message from {}: {}", user, update);

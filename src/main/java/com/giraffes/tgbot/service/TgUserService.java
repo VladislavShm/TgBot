@@ -67,6 +67,16 @@ public class TgUserService {
         return tgUser;
     }
 
+    public void onUserBecomeKicked(TgUser user) {
+        user.setKicked(true);
+        log.debug("User with chat ID = {} became kicked", user.getChatId());
+    }
+
+    public void onUserBecomeMember(TgUser user) {
+        user.setKicked(false);
+        log.debug("User with chat ID = {} became member", user.getChatId());
+    }
+
     public TgUser findByUsername(String username) {
         return this.tgUserRepository.findByName(username);
     }

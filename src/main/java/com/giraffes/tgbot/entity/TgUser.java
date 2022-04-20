@@ -47,6 +47,9 @@ public class TgUser {
     @Column(name = "wallet")
     private String wallet;
 
+    @Column(name = "kicked")
+    private boolean kicked;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
