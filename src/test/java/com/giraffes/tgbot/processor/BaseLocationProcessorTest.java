@@ -1,0 +1,110 @@
+package com.giraffes.tgbot.processor;
+
+
+import com.giraffes.tgbot.TgBotApplication;
+import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.repository.TgUserRepository;
+import com.giraffes.tgbot.service.IncomingUpdateProcessor;
+import com.giraffes.tgbot.service.TelegramSenderService;
+import com.giraffes.tgbot.service.TgUserService;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.TestPropertySource;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+
+import javax.transaction.Transactional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+
+@SpringBootTest(classes = TgBotApplication.class)
+@TestPropertySource(properties = {"spring.config.location = classpath:application-test.yml"})
+public class BaseLocationProcessorTest {
+    @Autowired
+    private IncomingUpdateProcessor incomingUpdateProcessor;
+
+    @Autowired
+    private TgUserService tgUserService;
+
+    @Autowired
+    private TgUserRepository tgUserRepository;
+
+    @MockBean
+    private TelegramSenderService telegramSenderService;
+
+    @Test
+    void startMessageTest() {
+        Mockito.doNothing().when(telegramSenderService).send(anyString(), any(ReplyKeyboard.class));
+
+        long chatId = 1L;
+
+        Update update = createUpdate(chatId, "/start");
+
+        incomingUpdateProcessor.process(update);
+
+        TgUser user = tgUserService.findByChatId(String.valueOf(chatId));
+
+        assertNotNull(user);
+        assertTrue(TgUserService.isUserJustCreated());
+        assertEquals(user, TgUserService.getCurrentUser());
+        Mockito.verify(telegramSenderService, Mockito.only()).send(
+                eq("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
+                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно 300 \uD83E\uDD92 к приобритению."),
+                any(ReplyKeyboard.class)
+        );
+    }
+
+    @Test
+    @Transactional
+    void startWithInvitationMessageTest() {
+        Mockito.doNothing().when(telegramSenderService).send(anyString(), any(ReplyKeyboard.class));
+
+        TgUser inviter = new TgUser();
+        inviter.setLocation(Location.BASE);
+        inviter.setKicked(false);
+        inviter.setId(1L);
+        tgUserRepository.save(inviter);
+
+        long chatId = 2L;
+
+        Update update = createUpdate(chatId, "/start " + tgUserService.createInvitationUniqueCode(inviter));
+
+        incomingUpdateProcessor.process(update);
+
+        TgUser user = tgUserService.findByChatId(String.valueOf(chatId));
+
+        assertNotNull(user);
+        assertTrue(TgUserService.isUserJustCreated());
+        assertEquals(user.getInvitedBy(), inviter);
+        assertEquals(user, TgUserService.getCurrentUser());
+        Mockito.verify(telegramSenderService, Mockito.only()).send(
+                eq("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
+                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно 300 \uD83E\uDD92 к приобритению."),
+                any(ReplyKeyboard.class)
+        );
+    }
+
+    private Update createUpdate(long chatId, String text) {
+        Update update = new Update();
+        Message message = new Message();
+        message.setText(text);
+        User from = new User();
+        from.setUserName("username");
+        from.setFirstName("firstname");
+        from.setLastName("lastname");
+        message.setFrom(from);
+        Chat chat = new Chat();
+        chat.setId(chatId);
+        message.setChat(chat);
+        update.setMessage(message);
+        return update;
+    }
+}

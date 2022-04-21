@@ -29,8 +29,12 @@ public class TgUserService {
     private static final ThreadLocal<TgUser> CURRENT_USER = new ThreadLocal<>();
 
     public String createInvitationLink(TgUser tgUser) {
-        String uniqueCode = new String(Base64.getEncoder().encode(("base64" + tgUser.getId()).getBytes(StandardCharsets.UTF_8)));
+        String uniqueCode = createInvitationUniqueCode(tgUser);
         return "https://t.me/" + botProperties.getBotUserName() + "?start=" + uniqueCode;
+    }
+
+    public String createInvitationUniqueCode(TgUser tgUser) {
+        return new String(Base64.getEncoder().encode(("base64" + tgUser.getId()).getBytes(StandardCharsets.UTF_8)));
     }
 
     public TgUser authenticateUser(Update update) {

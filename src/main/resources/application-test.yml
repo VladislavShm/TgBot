@@ -1,0 +1,29 @@
+datasource:
+  url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+  username: sa
+  password: sa
+  driver: org.h2.Driver
+
+
+tg-bot:
+  botUserName: botUserNameMock
+  botToken: botTokenMock
+
+purchase:
+  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  basePrice: 10
+  presalePrice: 6
+  presaleQuantity: 300
+
+logging:
+  level:
+    com:
+      giraffes:
+        tgbot: INFO
+
+spring:
+  liquibase:
+    change-log: classpath:db/changelog-master.xml
+
+ton-provider:
+  url: http://localhost:3001

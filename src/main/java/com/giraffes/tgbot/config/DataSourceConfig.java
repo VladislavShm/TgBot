@@ -21,6 +21,9 @@ public class DataSourceConfig {
     @Value("${datasource.password:#{null}}")
     private String databaseDefaultPassword;
 
+    @Value("${datasource.driver}")
+    private String databaseDriver;
+
     @Bean
     @SneakyThrows
     public DataSource getDataSource() {
@@ -43,7 +46,7 @@ public class DataSourceConfig {
                 .url(dbUrl)
                 .username(username)
                 .password(password)
-                .driverClassName("org.postgresql.Driver")
+                .driverClassName(databaseDriver)
                 .build();
     }
 }

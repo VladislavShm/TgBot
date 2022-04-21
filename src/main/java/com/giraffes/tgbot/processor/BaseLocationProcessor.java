@@ -74,7 +74,7 @@ public class BaseLocationProcessor extends LocationProcessor {
     private void sendBaseMessage(Integer availableNftQuantity) {
         telegramSenderService.send(
                 "Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению. ",
+                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению.",
                 createBaseButtons()
         );
     }
@@ -151,7 +151,7 @@ public class BaseLocationProcessor extends LocationProcessor {
         }
 
         Optional<TgUser> inviter = tgUserService.findById(inviterId);
-        if (!inviter.isPresent()) {
+        if (inviter.isEmpty()) {
             log.info("Invalid inviter ID: {}", inviterId);
             return;
         }

@@ -1,3 +1,6 @@
+datasource:
+  driver: org.postgresql.Driver
+
 server:
   port: 5000
 
