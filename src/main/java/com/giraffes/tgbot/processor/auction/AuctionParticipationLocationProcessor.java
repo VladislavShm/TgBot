@@ -136,6 +136,7 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
 
         UserAuctionActivity activeUserAuctionActivity = userAuctionActivityService.findActivity(auction, user);
         activeUserAuctionActivity.setBid(auctionBid);
+        activeUserAuctionActivity.setBidDateTime(LocalDateTime.now());
 
         telegramSenderService.send("Ваша ставка принята!", createBaseButtons());
 
@@ -159,7 +160,7 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
         if (now.isAfter(auction.getStartDateTime())) {
             UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
             if (highestBid != null) {
-                long minutesLeft = Math.abs(60 - Math.abs(ChronoUnit.MINUTES.between(now, highestBid.getUpdateDateTime())));
+                long minutesLeft = Math.abs(60 - Math.abs(ChronoUnit.MINUTES.between(now, highestBid.getBidDateTime())));
                 message = String.format(
                         "Текущая максимальная сделаная ставка: %s TON\n" +
                                 "Минимальная допустимая ставка: %s TON\n" +

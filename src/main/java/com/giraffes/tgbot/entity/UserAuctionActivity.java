@@ -7,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
@@ -33,6 +32,9 @@ public class UserAuctionActivity {
 
     @Column
     private BigInteger bid;
+
+    @Column
+    private LocalDateTime bidDateTime;
 
     @CreationTimestamp
     private LocalDateTime createDateTime;

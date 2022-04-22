@@ -19,5 +19,6 @@
     <include file="db/changelog/update-auction-table.xml"/>
     <include file="db/changelog/add-auction-step-change-reduction-type.xml"/>
     <include file="db/changelog/add-user-kicked-column.xml"/>
+    <include file="db/changelog/add-bid-date-time-to-activity.xml"/>
 
 </databaseChangeLog>

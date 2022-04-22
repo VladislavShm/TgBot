@@ -103,7 +103,7 @@ public class AuctionService {
     public LocalDateTime calculateAuctionFinishDateTime(Auction auction) {
         UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
         if (highestBid != null) {
-            return highestBid.getUpdateDateTime().plus(60, ChronoUnit.MINUTES);
+            return highestBid.getBidDateTime().plus(60, ChronoUnit.MINUTES);
         }
 
         BigInteger startPrice = auction.getStartPrice();
