@@ -7,28 +7,33 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
 @ToString
-@Table(name = "purchase")
-public class Purchase {
+@Table(name = "transaction")
+public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    private Transaction transaction;
+    @Column
+    private String fromWallet;
 
     @Column
-    private Integer quantity;
+    private LocalDateTime datetime;
 
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private TgUser user;
+    @Column
+    private BigInteger amount;
+
+    @Column
+    private String transactionId;
+
+    @Column
+    private String text;
 
     @CreationTimestamp
     private LocalDateTime createDateTime;

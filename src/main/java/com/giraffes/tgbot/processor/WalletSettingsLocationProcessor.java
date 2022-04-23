@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.processor;
 
-import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.WalletInfoDto;
 import com.giraffes.tgbot.service.TonProviderService;
 import lombok.RequiredArgsConstructor;
@@ -32,13 +32,17 @@ public class WalletSettingsLocationProcessor extends LocationProcessor {
             WalletInfoDto walletInfo = tonProviderService.getWalletInfo(text);
             if (walletInfo.isValid()) {
                 tgUser.setWallet(text);
+                tgUser.setWalletConfirmed(false);
 
                 telegramSenderService.send(
-                        "Кошелек обновлен! Новое значение:\n<b><code>" + text + "</code></b>",
+                        String.format(
+                                "Кошелек обновлен! Новое значение:\n<b><code>%s</code></b>\n",
+                                text
+                        ),
                         createCancelButtonKeyboard()
                 );
 
-                return Location.SETTINGS;
+                return Location.WALLET_CONFIRMATION;
             } else {
                 telegramSenderService.send(
                         "Кошелек с данным адресом не найден. Пожалуйста, проверьте правильность введенных данных.",

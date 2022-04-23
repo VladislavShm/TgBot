@@ -1,18 +1,18 @@
 package com.giraffes.tgbot.processor;
 
-import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createCancelButtonRow;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.createBackButtonRow;
 
 @Component
 @RequiredArgsConstructor
@@ -26,28 +26,38 @@ public class SettingsLocationProcessor extends LocationProcessor {
     @SneakyThrows
     protected Location processText(TgUser user, String text, boolean redirected) {
         if (redirected || "Ок".equals(text)) {
-            sendDefaultSettingsMessage();
-        } else if ("Отмена".equals(text)) {
+            sendDefaultSettingsMessage(user);
+        } else if ("Отмена".equals(text) || "Назад".equals(text)) {
             return Location.BASE;
-        } else if ("Указать кошелек".equals(text)) {
+        } else if ("Указать кошелек".equals(text) || "Изменить кошелек".equals(text)) {
             return Location.WALLET_SETTINGS;
+        } else if ("Подтвердить кошелек".equals(text)) {
+            return Location.WALLET_CONFIRMATION;
         }
 
         return getLocation();
     }
 
-    private void sendDefaultSettingsMessage() {
+    private void sendDefaultSettingsMessage(TgUser user) {
+        List<KeyboardButton> customKeyboards =
+                user.isWalletConfirmed()
+                        ? List.of
+                        (
+                                new KeyboardButton("Изменить кошелек")
+                        )
+                        : List.of
+                        (
+                                new KeyboardButton(StringUtils.isEmpty(user.getWallet()) ? "Указать кошелек" : "Изменить кошелек"),
+                                new KeyboardButton("Подтвердить кошелек")
+                        );
+
         telegramSenderService.send(
                 "Добро пожаловать в раздел настроек!",
                 ReplyKeyboardMarkup.builder()
                         .keyboard(
-                                Arrays.asList(
-                                        new KeyboardRow(
-                                                Collections.singletonList(
-                                                        new KeyboardButton("Указать кошелек")
-                                                )
-                                        ),
-                                        createCancelButtonRow()
+                                List.of(
+                                        new KeyboardRow(customKeyboards),
+                                        createBackButtonRow()
                                 )
                         )
                         .resizeKeyboard(true)

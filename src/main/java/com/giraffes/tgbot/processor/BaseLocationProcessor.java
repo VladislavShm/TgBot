@@ -68,7 +68,7 @@ public class BaseLocationProcessor extends LocationProcessor {
     }
 
     private int getAvailableNftQuantity() {
-        return purchaseProperties.getPresaleQuantity() - (purchaseService.getSoldPresaleNFTQuantity() + giftService.getGiftedNFTQuantity());
+        return purchaseProperties.getPresaleQuantity() - (purchaseService.purchasesCount() + giftService.getGiftedNFTQuantity());
     }
 
     private void sendBaseMessage(Integer availableNftQuantity) {
@@ -91,7 +91,7 @@ public class BaseLocationProcessor extends LocationProcessor {
 
     private void sendMyGiraffesInfo(TgUser user) {
         Integer giftsCount = ObjectUtils.defaultIfNull(giftService.giftsCount(user), 0);
-        Integer purchasesCount = purchaseService.approvedPurchasesCount(user);
+        Integer purchasesCount = purchaseService.purchasesCount(user);
         String message = String.format(
                 "На данный момент Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe\n" +

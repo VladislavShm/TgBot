@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.service;
 
-import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.ParticipantInvites;
 import com.giraffes.tgbot.property.BotProperties;
 import com.giraffes.tgbot.repository.TgUserRepository;
@@ -89,11 +89,15 @@ public class TgUserService {
 
     public String topParticipants() {
         List<ParticipantInvites> topParticipants = tgUserRepository.top10Participants();
-        return topParticipants.stream().map(x -> x.getName() + " - " + x.getInvites()).collect(Collectors.joining( "\n"));
+        return topParticipants.stream().map(x -> x.getName() + " - " + x.getInvites()).collect(Collectors.joining("\n"));
     }
 
     public TgUser findByChatId(String chatId) {
         return this.tgUserRepository.findByChatId(chatId);
+    }
+
+    public List<TgUser> findAllByWalletNotConfirmed(String wallet) {
+        return this.tgUserRepository.findAllByWalletAndWalletConfirmedIsFalse(wallet);
     }
 
     public static boolean isUserJustCreated() {

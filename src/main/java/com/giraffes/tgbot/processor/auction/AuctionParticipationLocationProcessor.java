@@ -9,6 +9,7 @@ import com.giraffes.tgbot.service.UserAuctionActivityService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
@@ -30,6 +31,9 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.createYesNoKeyboard;
 @Component
 @RequiredArgsConstructor
 public class AuctionParticipationLocationProcessor extends AuctionLocationProcessor {
+    private static final String REDIRECT_TO_WALLET_SETTINGS_BTN = "Перейти в раздел для указания кошелька ⚙️";
+    private static final String REDIRECT_TO_WALLET_CONFIRM_BTN = "Перейти в раздел для подтверждения кошелька ⚙️";
+
     private static final Pattern BID_PATTERN = Pattern.compile("^\\d+\\.?\\d*$");
 
     private final UserAuctionActivityService userAuctionActivityService;
@@ -42,6 +46,24 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
 
     @Override
     protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
+        if (REDIRECT_TO_WALLET_SETTINGS_BTN.equals(text) && StringUtils.isBlank(user.getWallet())) {
+            return Location.WALLET_SETTINGS;
+        }
+
+        if (StringUtils.isBlank(user.getWallet())) {
+            sendAskConfigureWallet();
+            return getLocation();
+        }
+
+        if (REDIRECT_TO_WALLET_CONFIRM_BTN.equals(text) && !user.isWalletConfirmed()) {
+            return Location.WALLET_CONFIRMATION;
+        }
+
+        if (!user.isWalletConfirmed()) {
+            sendAskConfirmWallet();
+            return getLocation();
+        }
+
         if (redirected || "Ок".equals(text)) {
             sendCurrentAuctionState(auction);
             return getLocation();
@@ -75,6 +97,42 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
         }
 
         return getLocation();
+    }
+
+    private void sendAskConfigureWallet() {
+        telegramSenderService.send(
+                "Пожалуйста, укажите Ваш кошелек в настройках для участия в аукционе",
+                ReplyKeyboardMarkup.builder()
+                        .keyboard(
+                                Arrays.asList(
+                                        new KeyboardRow(
+                                                Collections.singletonList(
+                                                        new KeyboardButton(REDIRECT_TO_WALLET_SETTINGS_BTN)
+                                                )
+                                        ),
+                                        createBackButtonRow())
+                        )
+                        .resizeKeyboard(true)
+                        .build()
+        );
+    }
+
+    private void sendAskConfirmWallet() {
+        telegramSenderService.send(
+                "Пожалуйста, подтвердите Ваш кошелек в настройках для участия в аукционе",
+                ReplyKeyboardMarkup.builder()
+                        .keyboard(
+                                Arrays.asList(
+                                        new KeyboardRow(
+                                                Collections.singletonList(
+                                                        new KeyboardButton(REDIRECT_TO_WALLET_CONFIRM_BTN)
+                                                )
+                                        ),
+                                        createBackButtonRow())
+                        )
+                        .resizeKeyboard(true)
+                        .build()
+        );
     }
 
     private void sendInvalidInput() {
@@ -173,7 +231,7 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
             } else {
                 message = String.format(
                         "Текущая минимальная допустимая ставка: %s TON.\n" +
-                                "Отправьте количество ТОН, которые Вы хотите поставить.",
+                                "Отправьте количество TON, которые Вы хотите поставить.",
                         TonCoinUtils.toHumanReadable(AuctionService.calculateCurrentReducedPrice(auction))
                 );
             }

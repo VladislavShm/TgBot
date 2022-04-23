@@ -1,21 +1,17 @@
 package com.giraffes.tgbot.repository;
 
 import com.giraffes.tgbot.entity.Purchase;
+import com.giraffes.tgbot.entity.TgUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
-    @Query("select purchase.transactionId from Purchase purchase")
-    List<String> findAllTransactionIds();
+    @Query("select sum(purchase.quantity) from Purchase purchase where purchase.user = :user")
+    Integer purchasesCount(@Param("user") TgUser user);
 
-    @Query("select sum(purchase.number) from Purchase purchase where purchase.chatId = :chatId and purchase.approved = true")
-    Integer approvedPurchasesCount(@Param("chatId") String chatId);
-
-    @Query("select sum(purchase.number) from Purchase purchase where purchase.approved = true")
-    Integer getSoldPresaleNFTQuantity();
+    @Query("select sum(purchase.quantity) from Purchase purchase")
+    Integer purchasesCount();
 }

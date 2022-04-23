@@ -7,12 +7,7 @@ import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -25,8 +20,6 @@ import static com.giraffes.tgbot.utils.TelegramUiUtils.*;
 public class AuctionsBrowseLocationProcessor extends LocationProcessor {
     private static final Pattern AUCTION_ORDER_NUMBER_PATTERN = Pattern.compile("^\\d+$");
 
-    private final static String REDIRECT_TO_WALLET_SETTINGS_BTN = "Перейти в настройки кошелька ⚙️";
-
     private final UserAuctionActivityService userAuctionActivityService;
     private final AuctionService auctionService;
 
@@ -38,9 +31,7 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
     @Override
     protected Location processText(TgUser user, String text, boolean redirected) {
         if (redirected || "Ок".equals(text)) {
-            sendBaseMessage(user);
-        } else if (REDIRECT_TO_WALLET_SETTINGS_BTN.equals(text) && StringUtils.isBlank(user.getWallet())) {
-            return Location.WALLET_SETTINGS;
+            sendShortAuctionsInfo();
         } else if (AUCTION_ORDER_NUMBER_PATTERN.matcher(text).find()) {
             Auction auction = auctionService.findActiveByOrderNumber(Integer.valueOf(text));
             if (auction == null) {
@@ -66,15 +57,6 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
         }
 
         return getLocation();
-    }
-
-    private void sendBaseMessage(TgUser user) {
-        if (StringUtils.isEmpty(user.getWallet())) {
-            sendAskConfigureWallet();
-            return;
-        }
-
-        sendShortAuctionsInfo();
     }
 
     private void sendShortAuctionsInfo() {
@@ -117,24 +99,6 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
         telegramSenderService.send(
                 "В данный момент нет ни одного активного или запланированного аукциона. Ждем Вас в будущем \uD83E\uDD92\uD83D\uDD54",
                 createBackButtonKeyboard()
-        );
-    }
-
-    private void sendAskConfigureWallet() {
-        telegramSenderService.send(
-                "Пожалуйста, укажите Ваш кошелек в настройках для участия в аукционе",
-                ReplyKeyboardMarkup.builder()
-                        .keyboard(
-                                Arrays.asList(
-                                        new KeyboardRow(
-                                                Collections.singletonList(
-                                                        new KeyboardButton(REDIRECT_TO_WALLET_SETTINGS_BTN)
-                                                )
-                                        ),
-                                        createBackButtonRow())
-                        )
-                        .resizeKeyboard(true)
-                        .build()
         );
     }
 

@@ -29,5 +29,9 @@ purchase:
   presalePrice: ${PRESALE_NFT_PRICE}
   presaleQuantity: ${PRESALE_NFT_QUANTITY}
 
+user-wallet:
+  confirmation-sum: ${CONFIRMATION_WALLET_SUM}
+  confirmation-wallet: ${CONFIRMATION_WALLET}
+
 ton-provider:
   url: ${TON_PROVIDER_URL}

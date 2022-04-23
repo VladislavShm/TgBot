@@ -3,6 +3,7 @@ package com.giraffes.tgbot.entity;
 import com.giraffes.tgbot.converter.jpa.LocationAttributeMapConverter;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "tg_user")
 public class TgUser {
     @Id
@@ -40,12 +42,16 @@ public class TgUser {
     @Convert(converter = LocationAttributeMapConverter.class)
     public Map<LocationAttribute, String> locationAttributes = new HashMap<>();
 
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invited_by")
     private TgUser invitedBy;
 
     @Column(name = "wallet")
     private String wallet;
+
+    @Column(name = "wallet_confirmed")
+    private boolean walletConfirmed = false;
 
     @Column(name = "kicked")
     private boolean kicked;
@@ -62,16 +68,5 @@ public class TgUser {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "(" +
-                "id = " + id + ", " +
-                "name = " + name + ", " +
-                "firstName = " + firstName + ", " +
-                "lastName = " + lastName + ", " +
-                "chatId = " + chatId + ", " +
-                "location = " + location + ")";
     }
 }
