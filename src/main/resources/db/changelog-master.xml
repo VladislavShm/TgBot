@@ -23,5 +23,6 @@
     <include file="db/changelog/add-user-wallet-confirmed-flag.xml"/>
     <include file="db/changelog/create-transaction-table.xml"/>
     <include file="db/changelog/modify-purchase-table.xml"/>
+    <include file="db/changelog/auction-outbid-and-constraints.xml"/>
 
 </databaseChangeLog>

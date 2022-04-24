@@ -42,6 +42,7 @@ public class AuctionService {
         auction.setPriceReductionMinutes(auctionCreationDto.getPriceReductionMinutes());
         auction.setPriceReductionValue(auctionCreationDto.getPriceReductionValue());
         auction.setMinimalStep(auctionCreationDto.getMinimalStep());
+        auction.setMinutesToOutbid(auctionCreationDto.getMinutesToOutbid());
         return auctionRepository.save(auction);
     }
 
@@ -72,7 +73,7 @@ public class AuctionService {
 
     private Auction findByIdOrFail(Long id) {
         return auctionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(String.format("Action with ID=%d is not found", id)));
+                .orElseThrow(() -> new RuntimeException(String.format("Auction with ID=%d is not found", id)));
     }
 
     public Auction findActiveByOrderNumber(Integer orderNumber) {
@@ -103,7 +104,7 @@ public class AuctionService {
     public LocalDateTime calculateAuctionFinishDateTime(Auction auction) {
         UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
         if (highestBid != null) {
-            return highestBid.getBidDateTime().plus(60, ChronoUnit.MINUTES);
+            return highestBid.getBidDateTime().plus(auction.getMinutesToOutbid(), ChronoUnit.MINUTES);
         }
 
         BigInteger startPrice = auction.getStartPrice();
@@ -125,6 +126,10 @@ public class AuctionService {
 
     public BigInteger calculateMinimumAllowBid(Auction auction) {
         UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
+        return calculateMinimumAllowBid(auction, highestBid);
+    }
+
+    public BigInteger calculateMinimumAllowBid(Auction auction, UserAuctionActivity highestBid) {
         if (highestBid != null) {
             return highestBid.getBid().add(auction.getMinimalStep());
         }

@@ -37,10 +37,10 @@ public class Auction {
     @Column
     private String nftImageName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Integer orderNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -57,6 +57,9 @@ public class Auction {
 
     @Column(nullable = false)
     private BigInteger priceReductionMinutes;
+
+    @Column(nullable = false)
+    private Integer minutesToOutbid;
 
     @Column(nullable = false)
     private BigInteger minimalStep;

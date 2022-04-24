@@ -20,12 +20,12 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static com.giraffes.tgbot.entity.LocationAttribute.AUCTION_ORDER_NUMBER;
 import static com.giraffes.tgbot.entity.LocationAttribute.SUGGESTED_AUCTION_BID;
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createBackButtonRow;
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createYesNoKeyboard;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.*;
 
 @Slf4j
 @Component
@@ -65,7 +65,7 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
         }
 
         if (redirected || "Ок".equals(text)) {
-            sendCurrentAuctionState(auction);
+            sendCurrentAuctionState(auction, user);
             return getLocation();
         }
 
@@ -76,12 +76,12 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
 
         if ("Да".equals(text)) {
             processBidApproved(user, auction.getId());
-            sendCurrentAuctionState(auction);
+            sendCurrentAuctionState(auction, user);
             return getLocation();
         }
 
         if ("Нет".equals(text)) {
-            sendCurrentAuctionState(auction);
+            sendCurrentAuctionState(auction, user);
             user.getLocationAttributes().remove(SUGGESTED_AUCTION_BID);
             return getLocation();
         }
@@ -180,7 +180,8 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
 
     private void processBidApproved(TgUser user, Long auctionId) {
         Auction auction = auctionService.findByIdAndLock(auctionId);
-        BigInteger minimumAllowBid = auctionService.calculateMinimumAllowBid(auction);
+        UserAuctionActivity currentHighestBid = userAuctionActivityService.findHighestBid(auction);
+        BigInteger minimumAllowBid = auctionService.calculateMinimumAllowBid(auction, currentHighestBid);
         BigInteger auctionBid = TonCoinUtils.fromHumanReadable(user.getLocationAttributes().get(SUGGESTED_AUCTION_BID));
         if (auctionBid.compareTo(minimumAllowBid) < 0) {
             sendInvalidTonAmount(minimumAllowBid);
@@ -196,9 +197,13 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
         activeUserAuctionActivity.setBid(auctionBid);
         activeUserAuctionActivity.setBidDateTime(LocalDateTime.now());
 
-        telegramSenderService.send("Ваша ставка принята!", createBaseButtons());
-
         user.getLocationAttributes().remove(SUGGESTED_AUCTION_BID);
+
+        if (!Objects.equals(user, currentHighestBid.getUser())) {
+            userAuctionActivityService.notifyOutbid(currentHighestBid, auctionBid);
+        }
+
+        telegramSenderService.send("Ваша ставка принята!", createBaseButtons(), user);
     }
 
     private void sendInvalidTonAmount(BigInteger minimumAllowBid) {
@@ -211,23 +216,36 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
         );
     }
 
-    private void sendCurrentAuctionState(Auction auction) {
+    private void sendCurrentAuctionState(Auction auction, TgUser user) {
         String message;
         LocalDateTime now = LocalDateTime.now();
         BigInteger minimumAllowBid = auctionService.calculateMinimumAllowBid(auction);
         if (now.isAfter(auction.getStartDateTime())) {
             UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
             if (highestBid != null) {
-                long minutesLeft = Math.abs(60 - Math.abs(ChronoUnit.MINUTES.between(now, highestBid.getBidDateTime())));
-                message = String.format(
-                        "Текущая максимальная сделаная ставка: %s TON\n" +
-                                "Минимальная допустимая ставка: %s TON\n" +
-                                "У Вас осталось <i><b>%s</b></i> минут чтобы перебить ставку.\n" +
-                                "Отправьте количество TON, которые Вы хотите поставить.",
-                        TonCoinUtils.toHumanReadable(highestBid.getBid()),
-                        TonCoinUtils.toHumanReadable(minimumAllowBid),
-                        minutesLeft
-                );
+                long minutesLeft = calculateMinutesLeft(auction, now, highestBid);
+                if (Objects.equals(user, highestBid.getUser())) {
+                    message = String.format(
+                            "На данный момент Вы лидерируете в данном аукционе!\n" +
+                                    "Ваша максимальная сделаная ставка: %s TON\n" +
+                                    "Следующая минимальная допустимая ставка: %s TON\n" +
+                                    "Если в течение <i><b>%s</b></i> минут Ваша ставка не будет перебита, то NFT Ваша!\n" +
+                                    "Если Вы хотите повысить свою ставку, то отправьте количество TON, которое хотели бы поставить.",
+                            TonCoinUtils.toHumanReadable(highestBid.getBid()),
+                            TonCoinUtils.toHumanReadable(minimumAllowBid),
+                            minutesLeft
+                    );
+                } else {
+                    message = String.format(
+                            "Текущая максимальная сделаная ставка: %s TON\n" +
+                                    "Минимальная допустимая ставка: %s TON\n" +
+                                    "У Вас осталось <i><b>%s</b></i> минут чтобы перебить ставку лидера.\n" +
+                                    "Отправьте количество TON, которые Вы хотите поставить.",
+                            TonCoinUtils.toHumanReadable(highestBid.getBid()),
+                            TonCoinUtils.toHumanReadable(minimumAllowBid),
+                            minutesLeft
+                    );
+                }
             } else {
                 message = String.format(
                         "Текущая минимальная допустимая ставка: %s TON.\n" +
@@ -243,23 +261,26 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
             );
         }
 
-        telegramSenderService.send(
-                message,
-                createBaseButtons()
-        );
+        telegramSenderService.send(message, createBaseButtons());
+    }
+
+    private long calculateMinutesLeft(Auction auction, LocalDateTime now, UserAuctionActivity highestBid) {
+        return Math.abs(auction.getMinutesToOutbid() - Math.abs(ChronoUnit.MINUTES.between(now, highestBid.getBidDateTime())));
     }
 
     private ReplyKeyboardMarkup createBaseButtons() {
-        return ReplyKeyboardMarkup.builder()
-                .keyboard(Arrays.asList(
-                        new KeyboardRow(
-                                Collections.singletonList(
-                                        new KeyboardButton("Прекратить участие")
-                                )
-                        ),
-                        createBackButtonRow()))
-                .resizeKeyboard(true)
-                .build();
+        return createBackButtonKeyboard();
+//        TODO think if we really need this feature now
+//        return ReplyKeyboardMarkup.builder()
+//                .keyboard(Arrays.asList(
+//                        new KeyboardRow(
+//                                Collections.singletonList(
+//                                        new KeyboardButton("Прекратить участие")
+//                                )
+//                        ),
+//                        createBackButtonRow()))
+//                .resizeKeyboard(true)
+//                .build();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.giraffes.tgbot.service;
 
+import com.giraffes.tgbot.entity.TgUser;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,16 @@ import java.io.ByteArrayInputStream;
 public class TelegramSenderService {
     private final AbsSender tgSender;
 
+    /**
+     * Use a method with an explicit TgUser / Chat ID parameter
+     */
+    @Deprecated
     public void send(String text, ReplyKeyboard keyboard) {
-        send(text, keyboard, TgUserService.getCurrentUser().getChatId());
+        send(text, keyboard, TgUserService.getCurrentUser());
+    }
+
+    public void send(String text, ReplyKeyboard keyboard, TgUser user) {
+        send(text, keyboard, user.getChatId());
     }
 
     @SneakyThrows

@@ -9,7 +9,7 @@ import java.math.RoundingMode;
 @UtilityClass
 public class TonCoinUtils {
     public static String toHumanReadable(BigInteger value) {
-        return new BigDecimal(value).divide(new BigDecimal("1000000000"), 3, RoundingMode.DOWN).toString();
+        return new BigDecimal(value).divide(new BigDecimal("1000000000"), 2, RoundingMode.DOWN).toString();
     }
 
     public static BigInteger fromHumanReadable(String value) {
