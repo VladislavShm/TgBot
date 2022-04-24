@@ -2,6 +2,7 @@ package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.model.ParticipantInvites;
 import com.giraffes.tgbot.property.BotProperties;
 import com.giraffes.tgbot.repository.TgUserRepository;
 import com.giraffes.tgbot.utils.TelegramUtils;
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -79,6 +81,11 @@ public class TgUserService {
 
     public TgUser findByUsername(String username) {
         return this.tgUserRepository.findByName(username);
+    }
+
+    public String topParticipants() {
+        List<ParticipantInvites> topParticipants = tgUserRepository.top10Participants();
+        return topParticipants.stream().map(x -> x.getName() + " - " + x.getInvites()).collect(Collectors.joining( "\n"));
     }
 
     public TgUser findByChatId(String chatId) {

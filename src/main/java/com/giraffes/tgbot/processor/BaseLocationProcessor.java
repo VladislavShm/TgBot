@@ -13,6 +13,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -104,8 +106,11 @@ public class BaseLocationProcessor extends LocationProcessor {
     }
 
     private void sendInviteInfo(TgUser tgUser) {
+
         telegramSenderService.send(
-                "На данный момент Вы пригласили <i><b>" + tgUserService.invitedCount(tgUser) + "</b></i> человек",
+                "На данный момент Вы пригласили <i><b>" + tgUserService.invitedCount(tgUser) + "</b></i> человек\n" +
+                        "ТОП-10 участников <a href=\"https://t.me/giraffe_capital/21\">нашего конкурса: </a>\n" +
+                        tgUserService.topParticipants(),
                 createBaseButtons()
         );
 
