@@ -2,6 +2,7 @@ package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.entity.Transaction;
 import com.giraffes.tgbot.entity.UserAuctionActivity;
 import com.giraffes.tgbot.model.AuctionCreationDto;
 import com.giraffes.tgbot.model.WalletInfoDto;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -85,10 +87,19 @@ public class AuctionService {
     }
 
     public static BigInteger calculateCurrentReducedPrice(Auction auction) {
-        LocalDateTime now = LocalDateTime.now();
-        BigInteger minutesGone = BigInteger.valueOf(Math.abs(ChronoUnit.MINUTES.between(now, auction.getStartDateTime())));
+        BigInteger minutesGone = calculateMinutesGone(auction);
         BigInteger reductionInTimes = minutesGone.divide(auction.getPriceReductionMinutes());
         return auction.getStartPrice().subtract(auction.getPriceReductionValue().multiply(reductionInTimes));
+    }
+
+    public static BigInteger calculateMinutesToNextReduction(Auction auction) {
+        BigInteger minutesGone = calculateMinutesGone(auction);
+        BigInteger priceReductionMinutes = auction.getPriceReductionMinutes();
+        return priceReductionMinutes.subtract(minutesGone.mod(priceReductionMinutes));
+    }
+
+    private static BigInteger calculateMinutesGone(Auction auction) {
+        return BigInteger.valueOf(Math.abs(ChronoUnit.MINUTES.between(LocalDateTime.now(), auction.getStartDateTime())));
     }
 
     public static String createStartInMessage(Auction auction) {
@@ -102,15 +113,14 @@ public class AuctionService {
     }
 
     public LocalDateTime calculateAuctionFinishDateTime(Auction auction) {
-        UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
-        if (highestBid != null) {
-            return highestBid.getBidDateTime().plus(auction.getMinutesToOutbid(), ChronoUnit.MINUTES);
-        }
-
-        BigInteger startPrice = auction.getStartPrice();
-        BigInteger stepsNumber = startPrice.subtract(auction.getMinPrice()).divide(auction.getPriceReductionValue());
-        BigInteger minutesForAllSteps = stepsNumber.multiply(auction.getPriceReductionMinutes());
-        return auction.getStartDateTime().plus(minutesForAllSteps.intValue(), ChronoUnit.MINUTES);
+        return userAuctionActivityService.findHighestBid(auction)
+                .map(highestBid -> highestBid.getBidDateTime().plus(auction.getMinutesToOutbid(), ChronoUnit.MINUTES))
+                .orElseGet(() -> {
+                    BigInteger startPrice = auction.getStartPrice();
+                    BigInteger stepsNumber = startPrice.subtract(auction.getMinPrice()).divide(auction.getPriceReductionValue());
+                    BigInteger minutesForAllSteps = stepsNumber.multiply(auction.getPriceReductionMinutes());
+                    return auction.getStartDateTime().plus(minutesForAllSteps.intValue(), ChronoUnit.MINUTES);
+                });
     }
 
     public boolean isUserHasEnoughCoins(TgUser user, BigInteger auctionBid) {
@@ -124,21 +134,27 @@ public class AuctionService {
         return auctionBid.compareTo(walletInfo.getBalance()) <= 0;
     }
 
-    public BigInteger calculateMinimumAllowBid(Auction auction) {
-        UserAuctionActivity highestBid = userAuctionActivityService.findHighestBid(auction);
-        return calculateMinimumAllowBid(auction, highestBid);
+    public BigInteger calculateMinimumAllowedBid(Auction auction) {
+        Optional<UserAuctionActivity> highestBid = userAuctionActivityService.findHighestBid(auction);
+        return calculateMinimumAllowedBid(auction, highestBid);
     }
 
-    public BigInteger calculateMinimumAllowBid(Auction auction, UserAuctionActivity highestBid) {
-        if (highestBid != null) {
-            return highestBid.getBid().add(auction.getMinimalStep());
-        }
-
-        return AuctionService.calculateCurrentReducedPrice(auction);
+    public BigInteger calculateMinimumAllowedBid(Auction auction, Optional<UserAuctionActivity> highestBid) {
+        return highestBid
+                .map(AuctionService::calculateNextMinimumAllowedBid)
+                .orElseGet(() -> AuctionService.calculateCurrentReducedPrice(auction));
     }
 
-    public void onAuctionFinish(Auction auction) {
-        // TODO
-        log.info("Auction has been finished: {}", auction);
+    public static BigInteger calculateNextMinimumAllowedBid(UserAuctionActivity userAuctionActivity) {
+        return userAuctionActivity.getBid().add(userAuctionActivity.getAuction().getMinimalStep());
+    }
+
+    public boolean isAuctionTransaction(Transaction transaction) {
+        return auctionRepository.findFinishedNotPaidByHighestBidAndUserWallet(transaction.getAmount(), transaction.getFromWallet()).isPresent();
+    }
+
+    public void processAuctionPay(Transaction transaction) {
+        auctionRepository.findFinishedNotPaidByHighestBidAndUserWallet(transaction.getAmount(), transaction.getFromWallet())
+                .ifPresent(auction -> auction.setCoinsPaid(true));
     }
 }

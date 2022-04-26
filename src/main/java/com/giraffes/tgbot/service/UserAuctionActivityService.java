@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Optional;
 
 import static com.giraffes.tgbot.utils.TelegramUiUtils.createOkKeyboard;
 
@@ -26,7 +28,7 @@ public class UserAuctionActivityService {
         return userAuctionActivityRepository.findByAuctionAndUserAndActiveIsTrue(auction, user) != null;
     }
 
-    public UserAuctionActivity findHighestBid(Auction auction) {
+    public Optional<UserAuctionActivity> findHighestBid(Auction auction) {
         return userAuctionActivityRepository.findWithHighestBid(auction);
     }
 
@@ -50,5 +52,9 @@ public class UserAuctionActivityService {
                 createOkKeyboard(),
                 prevHighestBid.getUser()
         );
+    }
+
+    public List<UserAuctionActivity> findAllParticipantsExceptFor(UserAuctionActivity activity) {
+        return userAuctionActivityRepository.findAllParticipantsExceptFor(activity.getAuction(), activity);
     }
 }

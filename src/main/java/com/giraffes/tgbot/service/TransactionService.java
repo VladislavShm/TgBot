@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
+    private final AuctionService auctionService;
     private final PurchaseService purchaseService;
     private final TransactionRepository transactionRepository;
     private final WalletConfirmationService walletConfirmationService;
@@ -46,6 +47,8 @@ public class TransactionService {
                     purchaseService.registerPurchase(transaction);
                 } else if (walletConfirmationService.isWalletConfirmation(transaction)) {
                     walletConfirmationService.confirmWallet(transaction);
+                } else if (auctionService.isAuctionTransaction(transaction)) {
+                    auctionService.processAuctionPay(transaction);
                 } else {
                     log.warn("Can't find out what to do with transaction ID={}", transaction.getId());
                 }

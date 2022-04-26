@@ -64,6 +64,9 @@ public class Auction {
     @Column(nullable = false)
     private BigInteger minimalStep;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean coinsPaid;
+
     @CreationTimestamp
     private LocalDateTime createDateTime;
 
