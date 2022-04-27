@@ -1,19 +1,22 @@
 package com.giraffes.tgbot.processor;
 
-import com.giraffes.tgbot.entity.*;
+import com.giraffes.tgbot.entity.Auction;
+import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.LocationAttribute;
+import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.service.AuctionService;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.giraffes.tgbot.utils.TelegramUiUtils.*;
+import static com.giraffes.tgbot.utils.TelegramUiUtils.createBackButtonKeyboard;
 
 @Component
 @RequiredArgsConstructor
@@ -105,9 +108,17 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
     private void sendAuctionInfo(Auction auction) {
         telegramSenderService.send(
                 String.format(
-                        "%s\n\nНачальная ставка: %s TON\n\n%s",
+                        "Аукцион номер %d - %s\n\n" +
+                                "Каждые %s минут начальная ставка %s TON будет уменьшаться на %s TON, пока не достигнет %s TON (аукцион заканчивается, лот снимается), либо пока кто-то не перебьёт эту ставку.\n" +
+                                "После обновления максимальной ставки у участников будет %s минут, чтобы перебить её, иначе лот достанется лидеру аукциона.\n\n" +
+                                "%s",
+                        auction.getOrderNumber(),
                         auction.getName(),
+                        auction.getPriceReductionMinutes(),
                         TonCoinUtils.toHumanReadable(auction.getStartPrice()),
+                        TonCoinUtils.toHumanReadable(auction.getPriceReductionValue()),
+                        TonCoinUtils.toHumanReadable(auction.getMinPrice()),
+                        BigInteger.valueOf(auction.getMinutesToOutbid()),
                         auction.getDescription()
                 ),
                 createBackButtonKeyboard()
