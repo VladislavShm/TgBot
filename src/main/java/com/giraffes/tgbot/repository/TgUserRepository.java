@@ -24,6 +24,6 @@ public interface TgUserRepository extends JpaRepository<TgUser, Long> {
     List<String> queryAllChatIds();
 
     @Query(value = "SELECT O.name, (SELECT COUNT(*) FROM public.tg_user A WHERE A.invited_by = O.id) " +
-            "as invites FROM public.tg_user O where O.name is not null ORDER BY invites desc limit 10;", nativeQuery = true)
+            "as invites FROM public.tg_user O where O.name is not null and O.kicked = false ORDER BY invites desc limit 10;", nativeQuery = true)
     List<ParticipantInvites> top10Participants();
 }

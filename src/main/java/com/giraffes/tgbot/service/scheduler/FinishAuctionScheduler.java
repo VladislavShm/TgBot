@@ -37,6 +37,7 @@ public class FinishAuctionScheduler {
     private AuctionSchedulerService auctionSchedulerService;
 
     public void run(Long auctionId) {
+        log.info("Finishing auction: {}", auctionId);
         LocalDateTime now = LocalDateTime.now();
         Auction auction = auctionService.findByIdAndLock(auctionId);
         LocalDateTime actualFinishDateTime = auctionService.calculateAuctionFinishDateTime(auction);

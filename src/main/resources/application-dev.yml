@@ -17,7 +17,7 @@ logging:
   level:
     com:
       giraffes:
-        tgbot: INFO
+        tgbot: TRACE
 
 user-wallet:
   confirmation-sum: 10000000

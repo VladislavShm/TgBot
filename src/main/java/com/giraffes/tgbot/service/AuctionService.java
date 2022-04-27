@@ -95,7 +95,7 @@ public class AuctionService {
     public static BigInteger calculateMinutesToNextReduction(Auction auction) {
         BigInteger minutesGone = calculateMinutesGone(auction);
         BigInteger priceReductionMinutes = auction.getPriceReductionMinutes();
-        return priceReductionMinutes.subtract(minutesGone.mod(priceReductionMinutes));
+        return priceReductionMinutes.subtract(minutesGone.mod(priceReductionMinutes)).subtract(BigInteger.ONE);
     }
 
     private static BigInteger calculateMinutesGone(Auction auction) {
