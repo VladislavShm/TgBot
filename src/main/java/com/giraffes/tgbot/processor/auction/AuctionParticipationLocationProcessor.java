@@ -51,6 +51,11 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
 
     @Override
     protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
+        if ("Назад".equals(text)) {
+            clearUserLocationAttributes(user);
+            return Location.AUCTIONS_BROWSE;
+        }
+
         if (REDIRECT_TO_WALLET_SETTINGS_BTN.equals(text) && StringUtils.isBlank(user.getWallet())) {
             return Location.WALLET_SETTINGS;
         }
@@ -72,11 +77,6 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
         if (redirected || "Ок".equals(text)) {
             sendCurrentAuctionState(auction, user);
             return getLocation();
-        }
-
-        if ("Назад".equals(text)) {
-            clearUserLocationAttributes(user);
-            return Location.AUCTIONS_BROWSE;
         }
 
         if ("Да".equals(text)) {
