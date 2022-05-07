@@ -2,12 +2,13 @@ package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.model.ParticipantInvites;
+import com.giraffes.tgbot.model.persistence.ParticipantInvites;
 import com.giraffes.tgbot.property.BotProperties;
 import com.giraffes.tgbot.repository.TgUserRepository;
 import com.giraffes.tgbot.utils.TelegramUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -15,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,11 +24,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TgUserService {
+    private static final ThreadLocal<TgUser> CURRENT_USER = new ThreadLocal<>();
     private final TgUserRepository tgUserRepository;
     private final BotProperties botProperties;
 
-    private static final ThreadLocal<Boolean> USER_JUST_CREATED = new ThreadLocal<>();
-    private static final ThreadLocal<TgUser> CURRENT_USER = new ThreadLocal<>();
+    public static TgUser getCurrentUser() {
+        return CURRENT_USER.get();
+    }
 
     public String createInvitationLink(TgUser tgUser) {
         String uniqueCode = createInvitationUniqueCode(tgUser);
@@ -40,33 +44,34 @@ public class TgUserService {
     public TgUser authenticateUser(Update update) {
         User user = TelegramUtils.extractUser(update);
         String chatId = TelegramUtils.determineChatId(update);
-        TgUser tgUser = tgUserRepository.findByChatId(chatId);
-        if (tgUser == null) {
-            tgUser = createUser(
-                    user.getUserName(),
-                    user.getFirstName(),
-                    user.getLastName(),
-                    chatId
-            );
-
-            USER_JUST_CREATED.set(true);
-        } else {
-            USER_JUST_CREATED.set(false);
-        }
-
-        CURRENT_USER.set(tgUser);
-        return tgUser;
+        return tgUserRepository.findByChatId(chatId)
+                .or(() -> Optional.of(createUser(chatId)))
+                .stream()
+                .peek(tgUser -> {
+                    tgUser.setName(user.getUserName());
+                    tgUser.setFirstName(user.getFirstName());
+                    tgUser.setLastName(user.getLastName());
+                })
+                .peek(tgUser ->
+                        Optional.ofNullable(tgUser.getLocale())
+                                .or(() ->
+                                        Optional.ofNullable(user.getLanguageCode())
+                                                .map(Locale::forLanguageTag)
+                                )
+                                .ifPresent(LocaleContextHolder::setLocale)
+                )
+                .peek(CURRENT_USER::set)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("User wasn't neither found nor created for: " + chatId));
     }
 
-    private TgUser createUser(String username, String firstName, String lastName, String chatId) {
-        log.info("Creating new user: {}, {}, {}, {}", username, firstName, lastName, chatId);
+    private TgUser createUser(String chatId) {
+        log.info("Creating a new user: {}", chatId);
 
         TgUser tgUser = new TgUser();
-        tgUser.setName(username);
-        tgUser.setFirstName(firstName);
-        tgUser.setLastName(lastName);
         tgUser.setChatId(chatId);
         tgUser.setLocation(Location.BASE);
+        tgUser.setJustCreated(true);
         tgUser = tgUserRepository.save(tgUser);
         log.info("New user was created: {}", tgUser);
 
@@ -92,20 +97,12 @@ public class TgUserService {
         return topParticipants.stream().map(x -> x.getName() + " - " + x.getInvites()).collect(Collectors.joining("\n"));
     }
 
-    public TgUser findByChatId(String chatId) {
+    public Optional<TgUser> findByChatId(String chatId) {
         return this.tgUserRepository.findByChatId(chatId);
     }
 
     public List<TgUser> findAllByWalletNotConfirmed(String wallet) {
         return this.tgUserRepository.findAllByWalletAndWalletConfirmedIsFalse(wallet);
-    }
-
-    public static boolean isUserJustCreated() {
-        return USER_JUST_CREATED.get();
-    }
-
-    public static TgUser getCurrentUser() {
-        return CURRENT_USER.get();
     }
 
     public Integer invitedCount(TgUser tgUser) {
@@ -116,7 +113,7 @@ public class TgUserService {
         return tgUserRepository.findById(inviterId);
     }
 
-    public List<String> queryAllChatIds() {
-        return tgUserRepository.queryAllChatIds();
+    public List<TgUser> findAllUsers() {
+        return tgUserRepository.findAll();
     }
 }

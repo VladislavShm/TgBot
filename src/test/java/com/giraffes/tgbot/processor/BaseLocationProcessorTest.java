@@ -4,6 +4,8 @@ package com.giraffes.tgbot.processor;
 import com.giraffes.tgbot.TgBotApplication;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.repository.TgUserRepository;
 import com.giraffes.tgbot.service.IncomingUpdateProcessor;
 import com.giraffes.tgbot.service.TelegramSenderService;
@@ -21,6 +23,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -50,15 +53,16 @@ public class BaseLocationProcessorTest {
 
         incomingUpdateProcessor.process(update);
 
-        TgUser user = tgUserService.findByChatId(String.valueOf(chatId));
+        Optional<TgUser> user = tgUserService.findByChatId(String.valueOf(chatId));
 
-        assertNotNull(user);
-        assertTrue(TgUserService.isUserJustCreated());
-        assertEquals(user, TgUserService.getCurrentUser());
+        assertTrue(user.isPresent());
+        assertFalse(user.get().isJustCreated());
+        assertEquals(user.get(), TgUserService.getCurrentUser());
         Mockito.verify(telegramSenderService, Mockito.only()).send(
-                eq("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно 300 \uD83E\uDD92 к приобритению."),
-                any(ReplyKeyboard.class)
+                eq(new Text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
+                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно 300 \uD83E\uDD92 к приобритению.")),
+                any(Keyboard.class),
+                user.get()
         );
     }
 
@@ -79,12 +83,12 @@ public class BaseLocationProcessorTest {
 
         incomingUpdateProcessor.process(update);
 
-        TgUser user = tgUserService.findByChatId(String.valueOf(chatId));
+        Optional<TgUser> user = tgUserService.findByChatId(String.valueOf(chatId));
 
-        assertNotNull(user);
-        assertTrue(TgUserService.isUserJustCreated());
-        assertEquals(user.getInvitedBy(), inviter);
-        assertEquals(user, TgUserService.getCurrentUser());
+        assertTrue(user.isPresent());
+        assertFalse(user.get().isJustCreated());
+        assertEquals(user.get().getInvitedBy(), inviter);
+        assertEquals(user.get(), TgUserService.getCurrentUser());
         Mockito.verify(telegramSenderService, Mockito.only()).send(
                 eq("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
                         "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно 300 \uD83E\uDD92 к приобритению."),

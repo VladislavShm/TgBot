@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.controller;
 
-import com.giraffes.tgbot.model.CreateGiftDto;
-import com.giraffes.tgbot.model.UpdateGiftDto;
+import com.giraffes.tgbot.model.api.CreateGiftDto;
+import com.giraffes.tgbot.model.api.UpdateGiftDto;
 import com.giraffes.tgbot.service.GiftService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

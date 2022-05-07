@@ -3,6 +3,8 @@ package com.giraffes.tgbot.service;
 import com.giraffes.tgbot.entity.Purchase;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Transaction;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.repository.PurchaseRepository;
 import com.giraffes.tgbot.utils.TonCoinUtils;
@@ -18,7 +20,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createOkKeyboard;
+import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
 
 @Slf4j
 @Service
@@ -81,7 +83,7 @@ public class PurchaseService {
                 .map(tonLinkService::parseParams)
                 .flatMap(params ->
                         Optional.ofNullable(params.get("id"))
-                                .map(tgUserService::findByChatId)
+                                .flatMap(tgUserService::findByChatId)
                                 .or(() ->
                                         Optional.ofNullable(params.get("login"))
                                                 .map(tgUserService::findByUsername)
@@ -105,7 +107,7 @@ public class PurchaseService {
         Map<String, String> params = tonLinkService.parseParams(transaction.getText());
 
         TgUser user = Optional.ofNullable(params.get("id"))
-                .map(tgUserService::findByChatId)
+                .flatMap(tgUserService::findByChatId)
                 .or(() -> Optional.ofNullable(params.get("login"))
                         .map(tgUserService::findByUsername))
                 .orElseThrow();
@@ -122,9 +124,9 @@ public class PurchaseService {
     private void sendPurchaseNotification(TgUser user) {
         int totalGiraffesQuantity = purchasesCount(user) + giftService.giftsCount(user);
         telegramSenderService.send(
-                String.format("Спасибо за покупку! На данный момент у вас имеется %d жирафов", totalGiraffesQuantity),
-                createOkKeyboard(),
-                user.getChatId()
+                new Text(String.format("Спасибо за покупку! На данный момент у вас имеется %d жирафов", totalGiraffesQuantity)),
+                new Keyboard(OkButton.OK_BUTTON),
+                user
         );
     }
 }

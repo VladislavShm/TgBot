@@ -2,14 +2,15 @@ package com.giraffes.tgbot.processor;
 
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.service.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
-
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createCancelButtonKeyboard;
 
 @Component
 @RequiredArgsConstructor
@@ -26,40 +27,43 @@ public class PurchaseLocationProcessor extends LocationProcessor {
     @Override
     @SneakyThrows
     protected Location processText(TgUser user, String text, boolean redirected) {
-        if (redirected) {
-            askToSpecifyQuantityOfNft();
-        } else if ("Отмена".equals(text)) {
+        if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
+            askToSpecifyQuantityOfNft(user);
+            return getLocation();
+        }
+
+        if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
             return Location.BASE;
         } else if (QUANTITY_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
             sendPurchaseLink(user, Integer.parseInt(text));
             return Location.BASE;
-        } else if ("Ок".equals(text)) {
-            askToSpecifyQuantityOfNft();
-        } else {
-            sendInvalidInput();
         }
 
+        sendInvalidInput(user);
         return getLocation();
     }
 
-    private void askToSpecifyQuantityOfNft() {
+    private void askToSpecifyQuantityOfNft(TgUser user) {
         telegramSenderService.send(
-                "Пожалуйста, укажите количество \uD83E\uDD92 для покупки",
-                createCancelButtonKeyboard()
+                new Text("Пожалуйста, укажите количество \uD83E\uDD92 для покупки"),
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
         );
     }
 
-    private void sendPurchaseLink(TgUser tgUser, Integer quantity) {
+    private void sendPurchaseLink(TgUser user, Integer quantity) {
         telegramSenderService.send(
-                purchaseService.createPurchaseMessage(tgUser, quantity),
-                createCancelButtonKeyboard()
+                new Text(purchaseService.createPurchaseMessage(user, quantity)),
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
         );
     }
 
-    private void sendInvalidInput() {
+    private void sendInvalidInput(TgUser user) {
         telegramSenderService.send(
-                "Неверный формат.\n\nПожалуйста, укажите количество \uD83E\uDD92 для покупки",
-                createCancelButtonKeyboard()
+                new Text("Неверный формат.\n\nПожалуйста, укажите количество \uD83E\uDD92 для покупки"),
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
         );
     }
 }

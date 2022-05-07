@@ -4,6 +4,9 @@ import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.LocationAttribute;
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.service.AuctionService;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
@@ -15,8 +18,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createBackButtonKeyboard;
 
 @Component
 @RequiredArgsConstructor
@@ -33,21 +34,22 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
 
     @Override
     protected Location processText(TgUser user, String text, boolean redirected) {
-        if (redirected || "Ок".equals(text)) {
-            sendShortAuctionsInfo();
+        if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
+            sendShortAuctionsInfo(user);
         } else if (AUCTION_ORDER_NUMBER_PATTERN.matcher(text).find()) {
             Auction auction = auctionService.findActiveByOrderNumber(Integer.valueOf(text));
             if (auction == null) {
                 telegramSenderService.send(
-                        "Аукцион с данным номером не был найден. " +
+                        new Text("Аукцион с данным номером не был найден. " +
                                 "Возможно данный аукцион только что закончился. " +
-                                "Пожалуйста, попробуйте ввод еще раз.",
-                        createBackButtonKeyboard()
+                                "Пожалуйста, попробуйте ввод еще раз."),
+                        new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                        user
                 );
 
-                sendShortAuctionsInfo();
+                sendShortAuctionsInfo(user);
             } else {
-                sendAuctionInfo(auction);
+                sendAuctionInfo(auction, user);
                 user.getLocationAttributes().put(LocationAttribute.AUCTION_ORDER_NUMBER, text);
                 if (userAuctionActivityService.isParticipant(auction, user)) {
                     return Location.AUCTION_PARTICIPATION;
@@ -55,18 +57,18 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
                     return Location.AUCTION_REGISTRATION;
                 }
             }
-        } else if ("Назад".equals(text)) {
+        } else if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
             return Location.BASE;
         }
 
         return getLocation();
     }
 
-    private void sendShortAuctionsInfo() {
+    private void sendShortAuctionsInfo(TgUser user) {
         List<Auction> activeAuctions = auctionService.findActive();
         List<Auction> upcomingAuctions = auctionService.findUpcoming();
         if (activeAuctions.isEmpty() && upcomingAuctions.isEmpty()) {
-            sendNoActiveAndUpcomingAuctions();
+            sendNoActiveAndUpcomingAuctions(user);
             return;
         }
 
@@ -93,21 +95,23 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
         }
 
         telegramSenderService.send(
-                message.toString(),
-                createBackButtonKeyboard()
+                new Text(message.toString()),
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
         );
     }
 
-    private void sendNoActiveAndUpcomingAuctions() {
+    private void sendNoActiveAndUpcomingAuctions(TgUser user) {
         telegramSenderService.send(
-                "В данный момент нет ни одного активного или запланированного аукциона. Ждем Вас в будущем \uD83E\uDD92\uD83D\uDD54",
-                createBackButtonKeyboard()
+                new Text("В данный момент нет ни одного активного или запланированного аукциона. Ждем Вас в будущем \uD83E\uDD92\uD83D\uDD54"),
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
         );
     }
 
-    private void sendAuctionInfo(Auction auction) {
+    private void sendAuctionInfo(Auction auction, TgUser user) {
         telegramSenderService.send(
-                String.format(
+                new Text(String.format(
                         "Аукцион номер %d - %s\n\n" +
                                 "Каждые %s минут начальная ставка %s TON будет уменьшаться на %s TON, пока не достигнет %s TON (аукцион заканчивается, лот снимается), либо пока кто-то не перебьёт эту ставку.\n" +
                                 "После обновления максимальной ставки у участников будет %s минут, чтобы перебить её, иначе лот достанется лидеру аукциона.\n\n" +
@@ -120,14 +124,16 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
                         TonCoinUtils.toHumanReadable(auction.getMinPrice()),
                         BigInteger.valueOf(auction.getMinutesToOutbid()),
                         auction.getDescription()
-                ),
-                createBackButtonKeyboard()
+                )),
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
         );
 
         telegramSenderService.sendImage(
                 auction.getNftImage(),
                 auction.getNftImageName(),
-                createBackButtonKeyboard()
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
         );
     }
 }

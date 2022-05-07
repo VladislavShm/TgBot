@@ -3,6 +3,8 @@ package com.giraffes.tgbot.service.scheduler;
 import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserAuctionActivity;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.*;
 import com.giraffes.tgbot.utils.TonCoinUtils;
@@ -16,7 +18,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createOkKeyboard;
+import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
 
 @Slf4j
 @Component
@@ -69,11 +71,11 @@ public class FinishAuctionScheduler {
         List<UserAuctionActivity> participants = userAuctionActivityService.findAllParticipantsExceptFor(highestBid);
         for (UserAuctionActivity participant : participants) {
             telegramSenderService.send(
-                    String.format(
+                    new Text(String.format(
                             "Аукцион № %s - %s завершен! Спасибо за участие в аукционе! Данный лот был выкуплен за %s TON. ",
                             auction.getOrderNumber(), auction.getName(), TonCoinUtils.toHumanReadable(highestBid.getBid())
-                    ),
-                    createOkKeyboard(),
+                    )),
+                    new Keyboard(OkButton.OK_BUTTON),
                     participant.getUser()
             );
         }
@@ -83,21 +85,21 @@ public class FinishAuctionScheduler {
         Auction auction = highestBid.getAuction();
         TgUser user = highestBid.getUser();
         telegramSenderService.send(
-                String.format("Поздравляем! Вы победили в аукционе № %s - %s!", auction.getOrderNumber(), auction.getName()),
-                createOkKeyboard(),
+                new Text(String.format("Поздравляем! Вы победили в аукционе № %s - %s!", auction.getOrderNumber(), auction.getName())),
+                new Keyboard(OkButton.OK_BUTTON),
                 user
         );
 
         String link = tonLinkService.createLink(purchaseProperties.getWallet(), highestBid.getBid());
         telegramSenderService.send(
-                String.format(
+                new Text(String.format(
                         "Для того, чтобы получить выигранный лот, Вам необходимо сделать перевод, с указанного в настройках кошелька, на сумму, равную %s TON на кошелек\n<b><code>%s</code></b>\nИли же Вы можете воспользоваться готовой ссылкой\n\n<a href='%s'>%s</a>",
                         TonCoinUtils.toHumanReadable(highestBid.getBid()),
                         purchaseProperties.getWallet(),
                         link,
                         link
-                ),
-                createOkKeyboard(),
+                )),
+                new Keyboard(OkButton.OK_BUTTON),
                 user
         );
     }

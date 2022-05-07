@@ -1,4 +1,4 @@
-package com.giraffes.tgbot.model;
+package com.giraffes.tgbot.model.api;
 
 import lombok.Data;
 

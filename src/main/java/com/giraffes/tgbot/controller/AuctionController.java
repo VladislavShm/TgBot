@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.controller;
 
 import com.giraffes.tgbot.entity.Auction;
-import com.giraffes.tgbot.model.AuctionCreationDto;
+import com.giraffes.tgbot.model.api.AuctionCreationDto;
 import com.giraffes.tgbot.service.AuctionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -2,8 +2,10 @@ package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Transaction;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.property.UserWalletProperties;
-import com.giraffes.tgbot.utils.TelegramUiUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,9 +43,9 @@ public class WalletConfirmationService {
 
     private void sendNotification(TgUser user) {
         telegramSenderService.send(
-                String.format("Ваш кошелек <b><code>%s</code></b> был подтвержден", user.getWallet()),
-                TelegramUiUtils.createOkKeyboard(),
-                user.getChatId()
+                new Text(String.format("Ваш кошелек <b><code>%s</code></b> был подтвержден", user.getWallet())),
+                new Keyboard(ButtonName.OkButton.OK_BUTTON),
+                user
         );
     }
 }

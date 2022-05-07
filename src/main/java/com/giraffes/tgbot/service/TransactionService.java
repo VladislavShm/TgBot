@@ -1,7 +1,7 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.Transaction;
-import com.giraffes.tgbot.model.TransactionDto;
+import com.giraffes.tgbot.model.tonprovider.TransactionDto;
 import com.giraffes.tgbot.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -4,6 +4,7 @@ import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserAuctionActivity;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ public class AuctionUnsubscribeLocationProcessor extends AuctionLocationProcesso
 
     @Override
     protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
-        if (redirected || "Ок".equals(text)) {
+        if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             telegramSenderService.send(
                     String.format(
                             "Вы действительно хотите прекратить участие в аукционе № %d - '%s'?",

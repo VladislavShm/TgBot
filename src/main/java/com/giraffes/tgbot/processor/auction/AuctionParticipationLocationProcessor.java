@@ -4,6 +4,7 @@ import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserAuctionActivity;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
 import com.giraffes.tgbot.service.AuctionSchedulerService;
 import com.giraffes.tgbot.service.AuctionService;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
@@ -51,7 +52,7 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
 
     @Override
     protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
-        if ("Назад".equals(text)) {
+        if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
             clearUserLocationAttributes(user);
             return Location.AUCTIONS_BROWSE;
         }
@@ -74,7 +75,7 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
             return getLocation();
         }
 
-        if (redirected || "Ок".equals(text)) {
+        if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             sendCurrentAuctionState(auction, user);
             return getLocation();
         }
@@ -235,17 +236,16 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
     private String createCurrentAuctionStateMessage(Auction auction, TgUser user) {
         LocalDateTime now = LocalDateTime.now();
         if (now.isAfter(auction.getStartDateTime())) {
-            Optional<UserAuctionActivity> highestBidOptional = userAuctionActivityService.findHighestBid(auction);
-            return highestBidOptional
+            return userAuctionActivityService.findHighestBid(auction)
                     .map((highestBid) -> createAuctionStateMessageHavingBid(user, highestBid))
                     .orElseGet(() -> createAuctionStateMessageWithoutBid(auction));
-        } else {
-            return String.format(
-                    "Вы зарегистрированы в качестве участника в данном аукционе.\n" +
-                            "Пожалуйста, ожидайте начала данного аукциона, чтобы принять в нем участие.\n%s",
-                    AuctionService.createStartInMessage(auction)
-            );
         }
+
+        return String.format(
+                "Вы зарегистрированы в качестве участника в данном аукционе.\n" +
+                        "Пожалуйста, ожидайте начала данного аукциона, чтобы принять в нем участие.\n%s",
+                AuctionService.createStartInMessage(auction)
+        );
     }
 
     private String createAuctionStateMessageWithoutBid(Auction auction) {

@@ -25,5 +25,6 @@
     <include file="db/changelog/modify-purchase-table.xml"/>
     <include file="db/changelog/auction-outbid-and-constraints.xml"/>
     <include file="db/changelog/add-auction-coins-paid.xml"/>
+    <include file="db/changelog/add-user-locale.xml"/>
 
 </databaseChangeLog>

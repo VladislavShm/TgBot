@@ -8,6 +8,7 @@ import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -55,6 +56,12 @@ public class TgUser {
 
     @Column(name = "kicked")
     private boolean kicked;
+
+    @Column(name = "locale")
+    private Locale locale;
+
+    @Transient
+    private boolean justCreated = false;
 
     @Override
     public boolean equals(Object o) {

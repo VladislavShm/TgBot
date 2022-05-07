@@ -4,15 +4,14 @@ datasource:
   password: sa
   driver: org.h2.Driver
 
-
 tg-bot:
   botUserName: botUserNameMock
   botToken: botTokenMock
 
 purchase:
   wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
-  basePrice: 10
-  presalePrice: 6
+  basePrice: 10000000000
+  presalePrice: 6000000000
   presaleQuantity: 300
 
 logging:
@@ -24,6 +23,10 @@ logging:
 spring:
   liquibase:
     change-log: classpath:db/changelog-master.xml
+
+user-wallet:
+  confirmation-sum: 10000000
+  confirmation-wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
 
 ton-provider:
   url: http://localhost:3001

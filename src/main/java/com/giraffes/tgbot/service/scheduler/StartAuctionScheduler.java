@@ -1,6 +1,9 @@
 package com.giraffes.tgbot.service.scheduler;
 
 import com.giraffes.tgbot.entity.Auction;
+import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.service.AuctionService;
 import com.giraffes.tgbot.service.TelegramSenderService;
 import com.giraffes.tgbot.service.TgUserService;
@@ -11,9 +14,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
-import java.util.List;
 
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createOkKeyboard;
+import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
 
 @Slf4j
 @Component
@@ -29,19 +31,15 @@ public class StartAuctionScheduler {
 
     public void run(Integer auctionOrderNumber) {
         log.info("Starting auction: {}", auctionOrderNumber);
-        List<String> chatIds = tgUserService.queryAllChatIds();
         Auction auction = auctionService.findActiveByOrderNumber(auctionOrderNumber);
-        String message = String.format(
+        Text message = new Text(String.format(
                 "Начался аукцион № %d - %s. Чтобы принять в нем участие, пожалуйста, пройдите в раздел с аукционами.",
                 auctionOrderNumber, auction.getName()
-        );
+        ));
 
-        for (String chatId : chatIds) {
-            telegramSenderService.send(
-                    message,
-                    createOkKeyboard(),
-                    chatId
-            );
+        Keyboard keyboard = new Keyboard(OkButton.OK_BUTTON);
+        for (TgUser user : tgUserService.findAllUsers()) {
+            telegramSenderService.send(message, keyboard, user);
         }
     }
 }

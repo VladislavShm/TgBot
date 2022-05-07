@@ -4,6 +4,9 @@ import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.LocationAttribute;
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.processor.LocationProcessor;
 import com.giraffes.tgbot.service.AuctionService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.giraffes.tgbot.entity.LocationAttribute.AUCTION_ORDER_NUMBER;
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createBackButtonKeyboard;
 
 @Slf4j
 public abstract class AuctionLocationProcessor extends LocationProcessor {
@@ -29,8 +31,9 @@ public abstract class AuctionLocationProcessor extends LocationProcessor {
         Auction auction = auctionService.findActiveByOrderNumber(Integer.valueOf(auctionOrderNumber));
         if (auction == null) {
             telegramSenderService.send(
-                    "Похоже, что данный аукцион закончился. Пожалуйста, ожидайте результатов.",
-                    createBackButtonKeyboard()
+                    new Text("Похоже, что данный аукцион закончился. Пожалуйста, ожидайте результатов."),
+                    new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                    user
             );
 
             user.getLocationAttributes().remove(AUCTION_ORDER_NUMBER);

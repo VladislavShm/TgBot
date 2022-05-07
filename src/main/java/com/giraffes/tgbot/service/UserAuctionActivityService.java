@@ -3,6 +3,9 @@ package com.giraffes.tgbot.service;
 import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserAuctionActivity;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.repository.UserAuctionActivityRepository;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +14,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createOkKeyboard;
 
 @Service
 @RequiredArgsConstructor
@@ -42,14 +43,14 @@ public class UserAuctionActivityService {
 
     public void notifyOutbid(UserAuctionActivity prevHighestBid, BigInteger newMaxBid) {
         telegramSenderService.send(
-                String.format(
+                new Text(String.format(
                         "Ваша ставка была перебита!\n" +
                                 "Текущая максимальная ставка: %s TON.\n" +
                                 "У вас есть %s минут на то, чтобы перебить ставку.",
                         TonCoinUtils.toHumanReadable(newMaxBid),
                         prevHighestBid.getAuction().getMinutesToOutbid()
-                ),
-                createOkKeyboard(),
+                )),
+                new Keyboard(ButtonName.OkButton.OK_BUTTON),
                 prevHighestBid.getUser()
         );
     }

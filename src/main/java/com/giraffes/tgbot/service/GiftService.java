@@ -1,10 +1,11 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.Gift;
-import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.model.CreateGiftDto;
-import com.giraffes.tgbot.model.UpdateGiftDto;
+import com.giraffes.tgbot.model.api.CreateGiftDto;
+import com.giraffes.tgbot.model.api.UpdateGiftDto;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.repository.GiftRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,9 +14,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
 
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
+import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
 
 @Slf4j
 @Service
@@ -27,16 +27,20 @@ public class GiftService {
     private final TgUserService tgUserService;
 
     public void createGift(CreateGiftDto giftDto) {
-        Gift gift = new Gift();
-        gift.setAmount(giftDto.getAmount());
-        gift.setUser(
-                Optional.ofNullable(tgUserService.findByChatId(giftDto.getChatId()))
-                        .orElseThrow(() -> new RuntimeException("User " + giftDto.getChatId() + " not found"))
-        );
-        gift.setReason(giftDto.getReason());
-        gift.setWallet(giftDto.getWallet());
-        giftRepository.save(gift);
-        sendGiftNotification(gift.getUser(), gift.getWallet());
+        tgUserService.findByChatId(giftDto.getChatId())
+                .ifPresentOrElse(
+                        (user) -> {
+                            Gift gift = new Gift();
+                            gift.setAmount(giftDto.getAmount());
+                            gift.setUser(user);
+                            gift.setReason(giftDto.getReason());
+                            gift.setWallet(giftDto.getWallet());
+                            giftRepository.save(gift);
+                            sendGiftNotification(gift.getUser(), gift.getWallet());
+                        },
+                        () -> {
+                            throw new RuntimeException("User " + giftDto.getChatId() + " not found");
+                        });
     }
 
     public Integer getGiftedNFTQuantity() {
@@ -44,15 +48,19 @@ public class GiftService {
     }
 
     public void updateGift(UpdateGiftDto giftDto) {
-        Gift gift = giftRepository.getById(giftDto.getGiftId());
-        gift.setAmount(giftDto.getAmount());
-        gift.setUser(
-                Optional.ofNullable(tgUserService.findByChatId(giftDto.getChatId()))
-                        .orElseThrow(() -> new RuntimeException("User " + giftDto.getChatId() + " not found"))
-        );
-        gift.setReason(giftDto.getReason());
-        gift.setWallet(giftDto.getWallet());
-        giftRepository.save(gift);
+        tgUserService.findByChatId(giftDto.getChatId())
+                .ifPresentOrElse(
+                        (user) -> {
+                            Gift gift = giftRepository.getById(giftDto.getGiftId());
+                            gift.setAmount(giftDto.getAmount());
+                            gift.setUser(user);
+                            gift.setReason(giftDto.getReason());
+                            gift.setWallet(giftDto.getWallet());
+                            giftRepository.save(gift);
+                        },
+                        () -> {
+                            throw new RuntimeException("User " + giftDto.getChatId() + " not found");
+                        });
     }
 
     public Integer giftsCount(TgUser tgUser) {
@@ -69,7 +77,6 @@ public class GiftService {
                     "Мы отправим Вашу NFT сразу после окончания этапа presale.";
         }
 
-        tgUser.setLocation(Location.BASE);
-        telegramSenderService.send(message, createBaseButtons(), tgUser.getChatId());
+        telegramSenderService.send(new Text(message), new Keyboard(OkButton.OK_BUTTON), tgUser);
     }
 }

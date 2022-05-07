@@ -1,6 +1,6 @@
 package com.giraffes.tgbot.controller;
 
-import com.giraffes.tgbot.model.TransactionDto;
+import com.giraffes.tgbot.model.tonprovider.TransactionDto;
 import com.giraffes.tgbot.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

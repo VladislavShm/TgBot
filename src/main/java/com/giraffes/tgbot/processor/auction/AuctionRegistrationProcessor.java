@@ -4,13 +4,15 @@ import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserAuctionActivity;
+import com.giraffes.tgbot.model.internal.telegram.ButtonName;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.service.UserAuctionActivityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import static com.giraffes.tgbot.entity.LocationAttribute.AUCTION_ORDER_NUMBER;
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createBackButtonKeyboard;
 import static com.giraffes.tgbot.utils.TelegramUiUtils.createYesNoKeyboard;
 
 @Slf4j
@@ -26,7 +28,7 @@ public class AuctionRegistrationProcessor extends AuctionLocationProcessor {
 
     @Override
     protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
-        if (redirected || "Ок".equals(text)) {
+        if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             sendConfirmToParticipateInAuction();
             return getLocation();
         }
@@ -49,13 +51,15 @@ public class AuctionRegistrationProcessor extends AuctionLocationProcessor {
         if (userAuctionActivity == null) {
             userAuctionActivityService.registerParticipant(auction, user);
             telegramSenderService.send(
-                    "Вы зарегистрированы в качестве участника!",
-                    createBackButtonKeyboard()
+                    new Text("Вы зарегистрированы в качестве участника!"),
+                    new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                    user
             );
         } else if (!userAuctionActivity.isActive()) {
             telegramSenderService.send(
-                    "Рады видеть Вас снова в качестве участника данного аукциона!",
-                    createBackButtonKeyboard()
+                    new Text("Рады видеть Вас снова в качестве участника данного аукциона!"),
+                    new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                    user
             );
 
             userAuctionActivity.setActive(true);

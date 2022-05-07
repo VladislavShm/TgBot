@@ -1,4 +1,4 @@
-package com.giraffes.tgbot.model;
+package com.giraffes.tgbot.model.api;
 
 import lombok.Data;
 
@@ -6,10 +6,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
-public class UpdateGiftDto {
-    @NotNull
-    private Long giftId;
-
+public class CreateGiftDto {
     @NotBlank
     private String chatId;
 

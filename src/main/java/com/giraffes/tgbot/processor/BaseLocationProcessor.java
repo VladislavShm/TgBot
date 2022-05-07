@@ -1,7 +1,9 @@
 package com.giraffes.tgbot.processor;
 
-import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.model.internal.telegram.Keyboard;
+import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.GiftService;
 import com.giraffes.tgbot.service.PurchaseService;
@@ -13,13 +15,12 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static com.giraffes.tgbot.utils.TelegramUiUtils.createBaseButtons;
+import static com.giraffes.tgbot.model.internal.telegram.ButtonName.BaseLocationButton;
+import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
 
 @Slf4j
 @Component
@@ -41,52 +42,64 @@ public class BaseLocationProcessor extends LocationProcessor {
     @SneakyThrows
     protected Location processText(TgUser user, String text, boolean redirected) {
         Integer availableNftQuantity = getAvailableNftQuantity();
-
-        if (redirected || "Ок".equals(text)) {
-            sendBaseMessage(availableNftQuantity);
+        Optional<OkButton> commonButton = messageToButtonTransformer.determineButton(text, OkButton.class);
+        if (redirected || commonButton.isPresent()) {
+            sendBaseMessage(availableNftQuantity, user);
             return getLocation();
         }
 
-        if ("Купить \uD83E\uDD92".equals(text)) {
-            return Location.PURCHASE;
-        } else if ("Инвайт инфо \uD83D\uDC65".equals(text)) {
-            sendInviteInfo(user);
-        } else if ("Мои жирафы \uD83E\uDD92".equals(text)) {
-            sendMyGiraffesInfo(user);
-        } else if ("Аукцион ⚖️".equals(text)) {
-            return Location.AUCTIONS_BROWSE;
-        } if ("О нас \uD83D\uDCD6".equals(text)) {
-            sendGiraffeInfo(availableNftQuantity);
-        } else if ("Настройки ⚙️".equals(text)) {
-            return Location.SETTINGS;
-        } else {
-            checkInvitation(text, user);
-            sendBaseMessage(availableNftQuantity);
-        }
+        return messageToButtonTransformer.determineButton(text, BaseLocationButton.class)
+                .map(button -> processButtonClickEvent(user, button, availableNftQuantity))
+                .orElseGet(() -> {
+                    checkInvitation(text, user);
+                    sendBaseMessage(availableNftQuantity, user);
+                    return getLocation();
+                });
+    }
 
-        return getLocation();
+    private Location processButtonClickEvent(TgUser user, BaseLocationButton button, Integer availableNftQuantity) {
+        switch (button) {
+            case BUY_BUTTON:
+                return Location.PURCHASE;
+            case INVITE_INFO_BUTTON:
+                sendInviteInfo(user);
+                return getLocation();
+            case MY_GIRAFFES_BUTTON:
+                sendMyGiraffesInfo(user);
+                return getLocation();
+            case AUCTION_BUTTON:
+                return Location.AUCTIONS_BROWSE;
+            case ABOUT_US_BUTTON:
+                sendGiraffeInfo(availableNftQuantity, user);
+                return getLocation();
+            case SETTINGS_BUTTON:
+                return Location.SETTINGS;
+            default:
+                return getLocation();
+        }
     }
 
     private int getAvailableNftQuantity() {
         return purchaseProperties.getPresaleQuantity() - (purchaseService.purchasesCount() + giftService.getGiftedNFTQuantity());
     }
 
-    private void sendBaseMessage(Integer availableNftQuantity) {
+    private void sendBaseMessage(Integer availableNftQuantity, TgUser user) {
         telegramSenderService.send(
-                "Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению.",
-                createBaseButtons()
+                new Text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
+                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению."),
+                createBaseButtons(),
+                user
         );
     }
 
-    private void sendGiraffeInfo(Integer availableNftQuantity) {
+    private void sendGiraffeInfo(Integer availableNftQuantity, TgUser user) {
         String message = "Мы - первый инвестиционный DAO на блокчейне TON - " +
                 "<a href=\"https://telegra.ph/Giraffe-Capital---investicionnyj-DAO-na-blokchejne-TON-03-21\">GIRAFFE CAPITAL\uD83E\uDD92</a>\n" +
                 "В данный момент идёт этап <b>PRESALE</b>.\nОсталось nft - " +
                 availableNftQuantity +
                 "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
 
-        telegramSenderService.send(message, createBaseButtons());
+        telegramSenderService.send(new Text(message), createBaseButtons(), user);
     }
 
     private void sendMyGiraffesInfo(TgUser user) {
@@ -100,27 +113,29 @@ public class BaseLocationProcessor extends LocationProcessor {
         );
 
         telegramSenderService.send(
-                message,
-                createBaseButtons()
+                new Text(message),
+                createBaseButtons(),
+                user
         );
     }
 
-    private void sendInviteInfo(TgUser tgUser) {
-
+    private void sendInviteInfo(TgUser user) {
         telegramSenderService.send(
-                "На данный момент Вы пригласили <i><b>" + tgUserService.invitedCount(tgUser) + "</b></i> человек\n" +
+                new Text("На данный момент Вы пригласили <i><b>" + tgUserService.invitedCount(user) + "</b></i> человек\n" +
                         "ТОП-10 участников <a href=\"https://t.me/giraffe_capital/21\">нашего конкурса: </a>\n" +
-                        tgUserService.topParticipants(),
-                createBaseButtons()
+                        tgUserService.topParticipants()),
+                createBaseButtons(),
+                user
         );
 
         telegramSenderService.send(
-                "Ваша персональная ссылка: \n\n" + tgUserService.createInvitationLink(tgUser),
-                createBaseButtons()
+                new Text("Ваша персональная ссылка: \n\n" + tgUserService.createInvitationLink(user)),
+                createBaseButtons(),
+                user
         );
     }
 
-    private void checkInvitation(String text, TgUser tgUser) {
+    private void checkInvitation(String text, TgUser user) {
         if (StringUtils.isBlank(text)) {
             return;
         }
@@ -129,23 +144,23 @@ public class BaseLocationProcessor extends LocationProcessor {
             return;
         }
 
-        if (tgUser.getInvitedBy() != null) {
-            log.warn("This user has already been invited: {} {}", text, tgUser);
+        if (user.getInvitedBy() != null) {
+            log.warn("This user has already been invited: {} {}", text, user);
             return;
         }
 
         Long inviterId = extractInviterId(text);
         if (inviterId == null) {
-            log.warn("Unexpected /start parameter: {} {}", text, tgUser);
+            log.warn("Unexpected /start parameter: {} {}", text, user);
             return;
         }
 
-        if (!TgUserService.isUserJustCreated()) {
-            log.warn("User hasn't been just created: {}", tgUser);
+        if (!user.isJustCreated()) {
+            log.warn("User hasn't been just created: {}", user);
             return;
         }
 
-        if (inviterId.equals(tgUser.getId())) {
+        if (inviterId.equals(user.getId())) {
             log.warn("Attempt to invite yourself");
             return;
         }
@@ -156,7 +171,7 @@ public class BaseLocationProcessor extends LocationProcessor {
             return;
         }
 
-        tgUser.setInvitedBy(inviter.get());
+        user.setInvitedBy(inviter.get());
     }
 
     private Long extractInviterId(String text) {
@@ -183,4 +198,17 @@ public class BaseLocationProcessor extends LocationProcessor {
         return null;
     }
 
+    private Keyboard createBaseButtons() {
+        return new Keyboard()
+                .line(
+                        BaseLocationButton.BUY_BUTTON,
+                        BaseLocationButton.INVITE_INFO_BUTTON,
+                        BaseLocationButton.MY_GIRAFFES_BUTTON
+                )
+                .line(
+                        BaseLocationButton.AUCTION_BUTTON,
+                        BaseLocationButton.ABOUT_US_BUTTON,
+                        BaseLocationButton.SETTINGS_BUTTON
+                );
+    }
 }
