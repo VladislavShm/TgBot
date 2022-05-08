@@ -51,54 +51,54 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
     }
 
     @Override
-    protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
+    protected Optional<Location> processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
         if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
             clearUserLocationAttributes(user);
-            return Location.AUCTIONS_BROWSE;
+            return Optional.of(Location.AUCTIONS_BROWSE);
         }
 
         if (REDIRECT_TO_WALLET_SETTINGS_BTN.equals(text) && StringUtils.isBlank(user.getWallet())) {
-            return Location.WALLET_SETTINGS;
+            return Optional.of(Location.WALLET_SETTINGS);
         }
 
         if (StringUtils.isBlank(user.getWallet())) {
             sendAskConfigureWallet();
-            return getLocation();
+            return Optional.empty();
         }
 
         if (REDIRECT_TO_WALLET_CONFIRM_BTN.equals(text) && !user.isWalletConfirmed()) {
-            return Location.WALLET_CONFIRMATION;
+            return Optional.of(Location.WALLET_CONFIRMATION);
         }
 
         if (!user.isWalletConfirmed()) {
             sendAskConfirmWallet();
-            return getLocation();
+            return Optional.empty();
         }
 
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             sendCurrentAuctionState(auction, user);
-            return getLocation();
+            return Optional.empty();
         }
 
         if ("Да".equals(text)) {
             processBidApproved(user, auction.getId());
             sendCurrentAuctionState(auction, user);
-            return getLocation();
+            return Optional.empty();
         }
 
         if ("Нет".equals(text)) {
             sendCurrentAuctionState(auction, user);
             user.getLocationAttributes().remove(SUGGESTED_AUCTION_BID);
-            return getLocation();
+            return Optional.empty();
         }
 
         if ("Прекратить участие".equals(text)) {
-            return Location.AUCTION_UNSUBSCRIBE;
+            return Optional.of(Location.AUCTION_UNSUBSCRIBE);
         }
 
         if (UPDATE_BTN.equals(text)) {
             sendCurrentAuctionState(auction, user);
-            return getLocation();
+            return Optional.empty();
         }
 
         if (BID_PATTERN.matcher(text).find()) {
@@ -107,7 +107,7 @@ public class AuctionParticipationLocationProcessor extends AuctionLocationProces
             sendInvalidInput();
         }
 
-        return getLocation();
+        return Optional.empty();
     }
 
     private void sendAskConfigureWallet() {

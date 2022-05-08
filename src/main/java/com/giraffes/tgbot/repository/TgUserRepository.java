@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface TgUserRepository extends JpaRepository<TgUser, Long> {
-    TgUser findByName(String name);
+    Optional<TgUser> findByName(String name);
 
     Optional<TgUser> findByChatId(String chatId);
 

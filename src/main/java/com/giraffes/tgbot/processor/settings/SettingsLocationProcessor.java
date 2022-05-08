@@ -27,14 +27,14 @@ public class SettingsLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             sendDefaultSettingsMessage(user);
-            return getLocation();
+            return Optional.empty();
         }
 
         if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
-            return Location.BASE;
+            return Optional.of(Location.BASE);
         }
 
         return messageToButtonTransformer
@@ -52,9 +52,9 @@ public class SettingsLocationProcessor extends LocationProcessor {
                             return Optional.empty();
                     }
                 })
-                .orElseGet(() -> {
+                .or(() -> {
                     sendDefaultSettingsMessage(user);
-                    return getLocation();
+                    return Optional.empty();
                 });
     }
 

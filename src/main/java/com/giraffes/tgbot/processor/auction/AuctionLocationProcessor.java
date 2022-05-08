@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Optional;
+
 import static com.giraffes.tgbot.entity.LocationAttribute.AUCTION_ORDER_NUMBER;
 
 @Slf4j
@@ -21,11 +23,11 @@ public abstract class AuctionLocationProcessor extends LocationProcessor {
     private AuctionService auctionService;
 
     @Override
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         String auctionOrderNumber = user.getLocationAttributes().get(LocationAttribute.AUCTION_ORDER_NUMBER);
         if (StringUtils.isBlank(auctionOrderNumber)) {
             log.warn("User {} tried to access auction without specified auction order number. Text: {}", user, text);
-            return Location.AUCTIONS_BROWSE;
+            return Optional.of(Location.AUCTIONS_BROWSE);
         }
 
         Auction auction = auctionService.findActiveByOrderNumber(Integer.valueOf(auctionOrderNumber));
@@ -37,13 +39,13 @@ public abstract class AuctionLocationProcessor extends LocationProcessor {
             );
 
             user.getLocationAttributes().remove(AUCTION_ORDER_NUMBER);
-            return Location.AUCTIONS_BROWSE;
+            return Optional.of(Location.AUCTIONS_BROWSE);
         }
 
         return processTextForAuction(user, text, redirected, auction);
     }
 
-    protected abstract Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction);
+    protected abstract Optional<Location> processTextForAuction(TgUser user, String text, boolean redirected, Auction auction);
 
     protected abstract void clearUserLocationAttributes(TgUser user);
 }

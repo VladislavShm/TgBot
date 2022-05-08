@@ -8,6 +8,8 @@ import com.giraffes.tgbot.service.TgUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.util.Optional;
+
 public abstract class LocationProcessor {
     @Autowired
     protected TelegramSenderService telegramSenderService;
@@ -16,11 +18,11 @@ public abstract class LocationProcessor {
 
     public abstract Location getLocation();
 
-    public Location process(Update update, boolean redirected) {
+    public Optional<Location> process(Update update, boolean redirected) {
         return processText(TgUserService.getCurrentUser(), update.getMessage().getText(), redirected);
     }
 
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         throw new RuntimeException("Location processor " + getLocation() + " doesn't support text messages");
     }
 }

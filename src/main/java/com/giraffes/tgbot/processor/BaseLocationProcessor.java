@@ -40,20 +40,20 @@ public class BaseLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         Integer availableNftQuantity = getAvailableNftQuantity();
         Optional<OkButton> commonButton = messageToButtonTransformer.determineButton(text, OkButton.class);
         if (redirected || commonButton.isPresent()) {
             sendBaseMessage(availableNftQuantity, user);
-            return getLocation();
+            return Optional.empty();
         }
 
         return messageToButtonTransformer.determineButton(text, BaseLocationButton.class)
                 .map(button -> processButtonClickEvent(user, button, availableNftQuantity))
-                .orElseGet(() -> {
+                .or(() -> {
                     checkInvitation(text, user);
                     sendBaseMessage(availableNftQuantity, user);
-                    return getLocation();
+                    return Optional.empty();
                 });
     }
 

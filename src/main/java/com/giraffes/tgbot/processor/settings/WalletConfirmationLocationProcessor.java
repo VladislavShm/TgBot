@@ -15,6 +15,8 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class WalletConfirmationLocationProcessor extends LocationProcessor {
@@ -28,9 +30,9 @@ public class WalletConfirmationLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         if (user.isWalletConfirmed()) {
-            return Location.SETTINGS;
+            return Optional.of(Location.SETTINGS);
         }
 
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
@@ -41,17 +43,17 @@ public class WalletConfirmationLocationProcessor extends LocationProcessor {
                         user
                 );
 
-                return Location.WALLET_SETTINGS;
+                return Optional.of(Location.WALLET_SETTINGS);
             } else {
                 askToConfirmWallet(user);
             }
         }
 
         if (messageToButtonTransformer.determineButton(text, BackCancelButton.class).isPresent()) {
-            return Location.SETTINGS;
+            return Optional.of(Location.SETTINGS);
         }
 
-        return getLocation();
+        return Optional.empty();
     }
 
     private void askToConfirmWallet(TgUser user) {

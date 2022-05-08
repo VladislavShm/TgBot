@@ -37,28 +37,39 @@ public class IncomingUpdateProcessor {
         log.info("Updated request has been successfully processed");
 
         if (update.hasMessage()) {
-            Location newUserLocation = processors.get(user.getLocation()).process(update, false);
-
-            while (user.getLocation() != newUserLocation) {
-                user.setLocation(newUserLocation);
-                newUserLocation = processors.get(newUserLocation).process(update, true);
-            }
+            processIncomingMessageUpdate(update, user);
         } else if (update.hasMyChatMember()) {
-            Optional<String> newStatus = Optional.ofNullable(update.getMyChatMember())
-                    .map(ChatMemberUpdated::getNewChatMember)
-                    .map(ChatMember::getStatus);
-
-            if (newStatus.filter("kicked"::equals).isPresent()) {
-                tgUserService.onUserBecomeKicked(user);
-            } else if (newStatus.filter("member"::equals).isPresent()) {
-                tgUserService.onUserBecomeMember(user);
-            } else {
-                log.warn("Unsupported new member status: {}", newStatus.orElse(null));
-            }
+            processIncomingMemberStatusChangeEvent(update, user);
         } else {
             log.warn("Received an update without a message from {}: {}", user, update);
         }
 
         log.info("Updated was successfully processed.");
+    }
+
+    private void processIncomingMemberStatusChangeEvent(Update update, TgUser user) {
+        Optional<String> newStatus = Optional.ofNullable(update.getMyChatMember())
+                .map(ChatMemberUpdated::getNewChatMember)
+                .map(ChatMember::getStatus);
+
+        if (newStatus.filter("kicked"::equals).isPresent()) {
+            tgUserService.onUserBecomeKicked(user);
+        } else if (newStatus.filter("member"::equals).isPresent()) {
+            tgUserService.onUserBecomeMember(user);
+        } else {
+            log.warn("Unsupported new member status: {}", newStatus.orElse(null));
+        }
+    }
+
+    private void processIncomingMessageUpdate(Update update, TgUser user) {
+        Optional.ofNullable(processors.get(user.getLocation()))
+                .map((processor) -> processor.process(update, false))
+                .ifPresent((location -> {
+                    Optional<Location> newLocation = location;
+                    while (newLocation.filter(l -> l != user.getLocation()).isPresent()) {
+                        user.setLocation(newLocation.get());
+                        newLocation = processors.get(user.getLocation()).process(update, true);
+                    }
+                }));
     }
 }

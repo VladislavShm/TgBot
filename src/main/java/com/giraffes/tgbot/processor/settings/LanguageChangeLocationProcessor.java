@@ -15,6 +15,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -26,34 +27,34 @@ public class LanguageChangeLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    protected Location processText(TgUser tgUser, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser tgUser, String text, boolean redirected) {
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             sendBaseMessage(tgUser);
-            return getLocation();
+            return Optional.empty();
         }
 
         if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
-            return Location.SETTINGS;
+            return Optional.of(Location.SETTINGS);
         }
 
-        return messageToButtonTransformer.determineButton(text, LanguageChangeLocationButton.class)
-                .map(button -> {
-                    switch (button) {
-                        case EN_BUTTON:
-                            updateLanguage(tgUser, Locale.ENGLISH);
-                            return getLocation();
-                        case RU_BUTTON:
-                            updateLanguage(tgUser, Locale.forLanguageTag("ru"));
-                            return getLocation();
-                        default:
-                            sendBaseMessage(tgUser);
-                            return getLocation();
-                    }
-                })
-                .orElseGet(() -> {
-                    sendBaseMessage(tgUser);
-                    return getLocation();
-                });
+        messageToButtonTransformer.determineButton(text, LanguageChangeLocationButton.class)
+                .ifPresentOrElse(
+                        button -> {
+                            switch (button) {
+                                case EN_BUTTON:
+                                    updateLanguage(tgUser, Locale.ENGLISH);
+                                    break;
+                                case RU_BUTTON:
+                                    updateLanguage(tgUser, Locale.forLanguageTag("ru"));
+                                    break;
+                                default:
+                                    sendBaseMessage(tgUser);
+                                    break;
+                            }
+                        },
+                        () -> sendBaseMessage(tgUser));
+
+        return Optional.empty();
     }
 
     private void updateLanguage(TgUser tgUser, Locale locale) {

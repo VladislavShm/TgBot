@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -33,10 +34,17 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
     }
 
     @Override
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             sendShortAuctionsInfo(user);
-        } else if (AUCTION_ORDER_NUMBER_PATTERN.matcher(text).find()) {
+            return Optional.empty();
+        }
+
+        if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
+            return Optional.of(Location.BASE);
+        }
+
+        if (AUCTION_ORDER_NUMBER_PATTERN.matcher(text).find()) {
             Auction auction = auctionService.findActiveByOrderNumber(Integer.valueOf(text));
             if (auction == null) {
                 telegramSenderService.send(
@@ -52,16 +60,16 @@ public class AuctionsBrowseLocationProcessor extends LocationProcessor {
                 sendAuctionInfo(auction, user);
                 user.getLocationAttributes().put(LocationAttribute.AUCTION_ORDER_NUMBER, text);
                 if (userAuctionActivityService.isParticipant(auction, user)) {
-                    return Location.AUCTION_PARTICIPATION;
+                    return Optional.of(Location.AUCTION_PARTICIPATION);
                 } else {
-                    return Location.AUCTION_REGISTRATION;
+                    return Optional.of(Location.AUCTION_REGISTRATION);
                 }
             }
-        } else if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
-            return Location.BASE;
+
+            return Optional.empty();
         }
 
-        return getLocation();
+        return Optional.empty();
     }
 
     private void sendShortAuctionsInfo(TgUser user) {

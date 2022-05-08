@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Component
@@ -26,21 +27,21 @@ public class PurchaseLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             askToSpecifyQuantityOfNft(user);
-            return getLocation();
+            return Optional.empty();
         }
 
         if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
-            return Location.BASE;
+            return Optional.of(Location.BASE);
         } else if (QUANTITY_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
             sendPurchaseLink(user, Integer.parseInt(text));
-            return Location.BASE;
+            return Optional.of(Location.BASE);
         }
 
         sendInvalidInput(user);
-        return getLocation();
+        return Optional.empty();
     }
 
     private void askToSpecifyQuantityOfNft(TgUser user) {

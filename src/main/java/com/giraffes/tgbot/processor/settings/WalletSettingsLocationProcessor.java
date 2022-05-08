@@ -13,6 +13,8 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class WalletSettingsLocationProcessor extends LocationProcessor {
@@ -25,14 +27,14 @@ public class WalletSettingsLocationProcessor extends LocationProcessor {
 
     @Override
     @SneakyThrows
-    protected Location processText(TgUser user, String text, boolean redirected) {
+    protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             askToSpecifyWallet(user);
-            return getLocation();
+            return Optional.empty();
         }
 
         if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
-            return Location.SETTINGS;
+            return Optional.of(Location.SETTINGS);
         }
 
         WalletInfoDto walletInfo = tonProviderService.getWalletInfo(text);
@@ -49,7 +51,7 @@ public class WalletSettingsLocationProcessor extends LocationProcessor {
                     user
             );
 
-            return Location.WALLET_CONFIRMATION;
+            return Optional.of(Location.WALLET_CONFIRMATION);
         } else {
             telegramSenderService.send(
                     new Text("Кошелек с данным адресом не найден. Пожалуйста, проверьте правильность введенных данных."),
@@ -58,7 +60,7 @@ public class WalletSettingsLocationProcessor extends LocationProcessor {
             );
         }
 
-        return getLocation();
+        return Optional.empty();
     }
 
     private void askToSpecifyWallet(TgUser user) {

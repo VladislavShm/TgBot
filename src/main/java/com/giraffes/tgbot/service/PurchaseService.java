@@ -86,7 +86,7 @@ public class PurchaseService {
                                 .flatMap(tgUserService::findByChatId)
                                 .or(() ->
                                         Optional.ofNullable(params.get("login"))
-                                                .map(tgUserService::findByUsername)
+                                                .flatMap(tgUserService::findByUsername)
                                 )
                                 .flatMap(buyer ->
                                         Optional.ofNullable(params.get("n"))
@@ -109,7 +109,7 @@ public class PurchaseService {
         TgUser user = Optional.ofNullable(params.get("id"))
                 .flatMap(tgUserService::findByChatId)
                 .or(() -> Optional.ofNullable(params.get("login"))
-                        .map(tgUserService::findByUsername))
+                        .flatMap(tgUserService::findByUsername))
                 .orElseThrow();
 
         Purchase purchase = new Purchase();

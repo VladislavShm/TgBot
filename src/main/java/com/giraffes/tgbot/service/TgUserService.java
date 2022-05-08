@@ -88,7 +88,7 @@ public class TgUserService {
         log.debug("User with chat ID = {} became member", user.getChatId());
     }
 
-    public TgUser findByUsername(String username) {
+    public Optional<TgUser> findByUsername(String username) {
         return this.tgUserRepository.findByName(username);
     }
 

@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 import static com.giraffes.tgbot.entity.LocationAttribute.AUCTION_ORDER_NUMBER;
 import static com.giraffes.tgbot.utils.TelegramUiUtils.createYesNoKeyboard;
 
@@ -27,23 +29,23 @@ public class AuctionRegistrationProcessor extends AuctionLocationProcessor {
     }
 
     @Override
-    protected Location processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
+    protected Optional<Location> processTextForAuction(TgUser user, String text, boolean redirected, Auction auction) {
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
             sendConfirmToParticipateInAuction();
-            return getLocation();
+            return Optional.empty();
         }
 
         if ("Да".equals(text)) {
             registerParticipantIfNeeded(user, auction);
-            return Location.AUCTION_PARTICIPATION;
+            return Optional.of(Location.AUCTION_PARTICIPATION);
         }
 
         if ("Нет".equals(text)) {
             clearUserLocationAttributes(user);
-            return Location.AUCTIONS_BROWSE;
+            return Optional.of(Location.AUCTIONS_BROWSE);
         }
 
-        return getLocation();
+        return Optional.empty();
     }
 
     private void registerParticipantIfNeeded(TgUser user, Auction auction) {
