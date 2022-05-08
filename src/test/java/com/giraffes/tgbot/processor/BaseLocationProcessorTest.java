@@ -59,10 +59,9 @@ public class BaseLocationProcessorTest {
         assertFalse(user.get().isJustCreated());
         assertEquals(user.get(), TgUserService.getCurrentUser());
         Mockito.verify(telegramSenderService, Mockito.only()).send(
-                eq(new Text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно 300 \uD83E\uDD92 к приобритению.")),
+                any(Text.class),
                 any(Keyboard.class),
-                user.get()
+                eq(user.get())
         );
     }
 
@@ -86,13 +85,13 @@ public class BaseLocationProcessorTest {
         Optional<TgUser> user = tgUserService.findByChatId(String.valueOf(chatId));
 
         assertTrue(user.isPresent());
-        assertFalse(user.get().isJustCreated());
+        assertTrue(user.get().isJustCreated());
         assertEquals(user.get().getInvitedBy(), inviter);
         assertEquals(user.get(), TgUserService.getCurrentUser());
         Mockito.verify(telegramSenderService, Mockito.only()).send(
-                eq("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно 300 \uD83E\uDD92 к приобритению."),
-                any(ReplyKeyboard.class)
+                any(Text.class),
+                any(Keyboard.class),
+                eq(user.get())
         );
     }
 
