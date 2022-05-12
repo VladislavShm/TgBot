@@ -25,4 +25,6 @@ public class PurchaseProperties {
 
     @NotNull
     private Integer presaleQuantity;
+
+    private String linkToMarketplace;
 }

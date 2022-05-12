@@ -103,12 +103,14 @@ public class BaseLocationProcessor extends LocationProcessor {
     }
 
     private void sendMyGiraffesInfo(TgUser user) {
+        boolean useMarketplaceOnly = StringUtils.isBlank(purchaseProperties.getLinkToMarketplace());
         Integer giftsCount = ObjectUtils.defaultIfNull(giftService.giftsCount(user), 0);
         Integer purchasesCount = purchaseService.purchasesCount(user);
         String message = String.format(
-                "На данный момент Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
+                "%s Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe\n" +
                         "Как правило, проведение транзакции и получение данных о Вашем переводе средств занимают некоторое время.",
+                useMarketplaceOnly ? "До деплоя коллекции" : "На данный момент",
                 ObjectUtils.defaultIfNull(purchasesCount, 0), giftsCount > 0 ? " и выиграли <i><b>" + giftsCount + "</b></i>" : ""
         );
 

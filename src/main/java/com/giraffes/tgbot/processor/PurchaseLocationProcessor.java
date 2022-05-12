@@ -5,9 +5,11 @@ import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.internal.telegram.ButtonName;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
+import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -18,6 +20,7 @@ import java.util.regex.Pattern;
 public class PurchaseLocationProcessor extends LocationProcessor {
     private static final Pattern QUANTITY_PATTERN = Pattern.compile("^\\d+$");
 
+    private final PurchaseProperties purchaseProperties;
     private final PurchaseService purchaseService;
 
     @Override
@@ -29,7 +32,7 @@ public class PurchaseLocationProcessor extends LocationProcessor {
     @SneakyThrows
     protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
-            askToSpecifyQuantityOfNft(user);
+            sendDefaultMessage(user);
             return Optional.empty();
         }
 
@@ -37,19 +40,27 @@ public class PurchaseLocationProcessor extends LocationProcessor {
             return Optional.of(Location.BASE);
         } else if (QUANTITY_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
             sendPurchaseLink(user, Integer.parseInt(text));
-            return Optional.of(Location.BASE);
+            return Optional.empty();
         }
 
         sendInvalidInput(user);
         return Optional.empty();
     }
 
-    private void askToSpecifyQuantityOfNft(TgUser user) {
-        telegramSenderService.send(
-                new Text("Пожалуйста, укажите количество \uD83E\uDD92 для покупки"),
-                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
-                user
-        );
+    private void sendDefaultMessage(TgUser user) {
+        if (StringUtils.isNotBlank(purchaseProperties.getLinkToMarketplace())) {
+            telegramSenderService.send(
+                    new Text(String.format("Пожалуйста, воспользуйтесь маркетлейсом Disintar для покупки нашей NFT: %s", purchaseProperties.getLinkToMarketplace())),
+                    new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                    user
+            );
+        } else {
+            telegramSenderService.send(
+                    new Text("Пожалуйста, укажите количество \uD83E\uDD92 для покупки"),
+                    new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                    user
+            );
+        }
     }
 
     private void sendPurchaseLink(TgUser user, Integer quantity) {

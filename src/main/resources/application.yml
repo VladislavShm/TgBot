@@ -28,6 +28,7 @@ purchase:
   basePrice: ${BASE_NFT_PRICE}
   presalePrice: ${PRESALE_NFT_PRICE}
   presaleQuantity: ${PRESALE_NFT_QUANTITY}
+  linkToMarketplace: ${LINK_TO_MARKETPLACE}
 
 user-wallet:
   confirmation-sum: ${CONFIRMATION_WALLET_SUM}
