@@ -76,6 +76,8 @@ public class TransactionService {
         transaction.setFromWallet(dto.getSender());
         transaction.setTransactionId(dto.getTransactionId());
         transaction.setText(dto.getText());
+        transaction.setToWallet(dto.getToWallet());
+        transaction.setToWalletType(dto.getToWalletType());
         transaction = transactionRepository.save(transaction);
         log.debug("Created transaction: {}", transaction);
         return Optional.of(transaction);

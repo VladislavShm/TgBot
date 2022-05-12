@@ -149,35 +149,36 @@ public class BaseLocationProcessor extends LocationProcessor {
             return;
         }
 
-        Long inviterId = extractInviterId(text);
-        if (inviterId == null) {
-            log.warn("Unexpected /start parameter: {} {}", text, user);
-            return;
-        }
-
         if (!user.isJustCreated()) {
             log.warn("User hasn't been just created: {}", user);
             return;
         }
 
-        if (inviterId.equals(user.getId())) {
-            log.warn("Attempt to invite yourself");
-            return;
-        }
+        extractInviterId(text)
+                .filter((inviterId) -> {
+                    if (inviterId.equals(user.getId())) {
+                        log.warn("Attempt to invite yourself");
+                        return false;
+                    }
 
-        Optional<TgUser> inviter = tgUserService.findById(inviterId);
-        if (inviter.isEmpty()) {
-            log.info("Invalid inviter ID: {}", inviterId);
-            return;
-        }
-
-        user.setInvitedBy(inviter.get());
+                    return true;
+                })
+                .ifPresentOrElse(
+                        (inviterId) ->
+                                tgUserService.findById(inviterId)
+                                        .ifPresentOrElse(
+                                                user::setInvitedBy,
+                                                () -> log.info("Invalid inviter ID: {}", inviterId)
+                                        ),
+                        () ->
+                                log.warn("Unexpected /start parameter: {} {}", text, user)
+                );
     }
 
-    private Long extractInviterId(String text) {
+    private Optional<Long> extractInviterId(String text) {
         String rawInviterId = text.substring("/start".length()).trim();
         if (ID_PATTERN.matcher(rawInviterId).find()) {
-            return Long.parseLong(rawInviterId);
+            return Optional.of(Long.parseLong(rawInviterId));
         }
 
         try {
@@ -189,13 +190,13 @@ public class BaseLocationProcessor extends LocationProcessor {
             }
 
             if (ID_PATTERN.matcher(rawInviterId).find()) {
-                return Long.parseLong(rawInviterId);
+                return Optional.of(Long.parseLong(rawInviterId));
             }
         } catch (Exception e) {
-            return null;
+            return Optional.empty();
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private Keyboard createBaseButtons() {

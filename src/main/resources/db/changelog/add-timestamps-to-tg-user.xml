@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1652290687550-1" author="giraffe">
+        <addColumn tableName="tg_user">
+            <column name="create_date_time" type="DATETIME"/>
+            <column name="update_date_time" type="DATETIME"/>
+        </addColumn>
+
+        <update tableName="tg_user">
+            <column name="create_date_time" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="update_date_time" valueComputed="CURRENT_TIMESTAMP"/>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

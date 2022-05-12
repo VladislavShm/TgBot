@@ -26,5 +26,7 @@
     <include file="db/changelog/auction-outbid-and-constraints.xml"/>
     <include file="db/changelog/add-auction-coins-paid.xml"/>
     <include file="db/changelog/add-user-locale.xml"/>
+    <include file="db/changelog/add-timestamps-to-tg-user.xml"/>
+    <include file="db/changelog/add-our-wallet-info-to-transaction.xml"/>
 
 </databaseChangeLog>

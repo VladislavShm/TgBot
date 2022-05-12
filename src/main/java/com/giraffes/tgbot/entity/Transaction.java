@@ -1,5 +1,6 @@
 package com.giraffes.tgbot.entity;
 
+import com.giraffes.tgbot.model.WalletType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -34,6 +35,13 @@ public class Transaction {
 
     @Column
     private String text;
+
+    @Column
+    private String toWallet;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private WalletType toWalletType;
 
     @CreationTimestamp
     private LocalDateTime createDateTime;
