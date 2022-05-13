@@ -6,6 +6,7 @@ import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.GiftService;
+import com.giraffes.tgbot.service.NftService;
 import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -32,6 +34,7 @@ public class BaseLocationProcessor extends LocationProcessor {
     private final PurchaseService purchaseService;
     private final TgUserService tgUserService;
     private final GiftService giftService;
+    private final NftService nftService;
 
     @Override
     public Location getLocation() {
@@ -119,6 +122,16 @@ public class BaseLocationProcessor extends LocationProcessor {
                 createBaseButtons(),
                 user
         );
+
+        List<String> userNftLinks = nftService.getUserNFTLinks(user);
+
+        for (String link : userNftLinks) {
+            telegramSenderService.send(
+                    new Text(link),
+                    createBaseButtons(),
+                    user
+            );
+        }
     }
 
     private void sendInviteInfo(TgUser user) {
