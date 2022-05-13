@@ -103,7 +103,7 @@ public class BaseLocationProcessor extends LocationProcessor {
     }
 
     private void sendMyGiraffesInfo(TgUser user) {
-        boolean useMarketplaceOnly = StringUtils.isBlank(purchaseProperties.getLinkToMarketplace());
+        boolean useMarketplaceOnly = StringUtils.isNotBlank(purchaseProperties.getLinkToMarketplace());
         Integer giftsCount = ObjectUtils.defaultIfNull(giftService.giftsCount(user), 0);
         Integer purchasesCount = purchaseService.purchasesCount(user);
         String message = String.format(
