@@ -29,5 +29,6 @@
     <include file="db/changelog/add-timestamps-to-tg-user.xml"/>
     <include file="db/changelog/add-our-wallet-info-to-transaction.xml"/>
     <include file="db/changelog/nft-creation.xml"/>
+    <include file="db/changelog/update-nft-table.xml"/>
 
 </databaseChangeLog>

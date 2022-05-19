@@ -1,8 +1,8 @@
 package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.Auction;
-import com.giraffes.tgbot.service.scheduler.FinishAuctionScheduler;
-import com.giraffes.tgbot.service.scheduler.StartAuctionScheduler;
+import com.giraffes.tgbot.scheduler.FinishAuctionScheduler;
+import com.giraffes.tgbot.scheduler.StartAuctionScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

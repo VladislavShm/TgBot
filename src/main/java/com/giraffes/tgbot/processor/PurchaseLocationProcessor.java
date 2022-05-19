@@ -38,12 +38,16 @@ public class PurchaseLocationProcessor extends LocationProcessor {
 
         if (messageToButtonTransformer.determineButton(text, ButtonName.BackCancelButton.class).isPresent()) {
             return Optional.of(Location.BASE);
-        } else if (QUANTITY_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
-            sendPurchaseLink(user, Integer.parseInt(text));
+        } else if (StringUtils.isBlank(purchaseProperties.getLinkToMarketplace())) {
+            if (QUANTITY_PATTERN.matcher(text).find() && Integer.parseInt(text) > 0) {
+                sendPurchaseLink(user, Integer.parseInt(text));
+            } else {
+                sendInvalidInput(user);
+            }
+
             return Optional.empty();
         }
 
-        sendInvalidInput(user);
         return Optional.empty();
     }
 

@@ -64,6 +64,36 @@ public class TelegramSenderService {
         );
     }
 
+// TODO
+//    @SneakyThrows
+//    public void sendImages(List<PCloudProvider.ImageData> images, TgUser user) {
+//        tgSender.execute(
+//                SendMediaGroup.builder()
+//                        .medias(
+//                                images.stream()
+//                                        .map(image ->
+//                                                {
+//                                                    try {
+//                                                        return InputMediaPhoto.builder()
+//                                                                .caption(image.getUrl())
+//                                                                .media(image.getUrl())
+//                                                                .isNewMedia(true)
+//                                                                .mediaName(image.getFilename())
+////                                                                .newMediaStream(image.getInputStream())
+//                                                                .newMediaStream(new ByteArrayInputStream(IOUtils.toByteArray(image.getInputStream())))
+//                                                                .build();
+//                                                    } catch (IOException e) {
+//                                                        throw new RuntimeException(e);
+//                                                    }
+//                                                }
+//                                        )
+//                                        .collect(Collectors.toList())
+//                        )
+//                        .chatId(user.getChatId())
+//                        .build()
+//        );
+//    }
+
     private ReplyKeyboardMarkup mapKeyboard(Keyboard keyboard) {
         return ReplyKeyboardMarkup.builder()
                 .keyboard(

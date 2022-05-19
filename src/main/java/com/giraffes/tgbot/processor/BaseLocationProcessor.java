@@ -1,18 +1,19 @@
 package com.giraffes.tgbot.processor;
 
 import com.giraffes.tgbot.entity.Location;
+import com.giraffes.tgbot.entity.Nft;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.GiftService;
 import com.giraffes.tgbot.service.NftService;
+import com.giraffes.tgbot.service.PCloudProvider;
 import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,7 @@ public class BaseLocationProcessor extends LocationProcessor {
 
     private final PurchaseProperties purchaseProperties;
     private final PurchaseService purchaseService;
+    private final PCloudProvider pCloudProvider;
     private final TgUserService tgUserService;
     private final GiftService giftService;
     private final NftService nftService;
@@ -105,16 +107,13 @@ public class BaseLocationProcessor extends LocationProcessor {
         telegramSenderService.send(new Text(message), createBaseButtons(), user);
     }
 
+    @SneakyThrows
     private void sendMyGiraffesInfo(TgUser user) {
-        boolean useMarketplaceOnly = StringUtils.isNotBlank(purchaseProperties.getLinkToMarketplace());
-        Integer giftsCount = ObjectUtils.defaultIfNull(giftService.giftsCount(user), 0);
-        Integer purchasesCount = purchaseService.purchasesCount(user);
+        List<Nft> userNfts = nftService.getUserNFTs(user);
         String message = String.format(
-                "%s Вы приобрели <i><b>%d</b></i> %s жирафов.\n\n" +
-                        "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe\n" +
-                        "Как правило, проведение транзакции и получение данных о Вашем переводе средств занимают некоторое время.",
-                useMarketplaceOnly ? "До деплоя коллекции" : "На данный момент",
-                ObjectUtils.defaultIfNull(purchasesCount, 0), giftsCount > 0 ? " и выиграли <i><b>" + giftsCount + "</b></i>" : ""
+                "На данный момент у Вас имеется <i><b>%d</b></i> жирафов.\n\n" +
+                        "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe",
+                userNfts.size()
         );
 
         telegramSenderService.send(
@@ -123,11 +122,11 @@ public class BaseLocationProcessor extends LocationProcessor {
                 user
         );
 
-        List<String> userNftLinks = nftService.getUserNFTLinks(user);
-
-        for (String link : userNftLinks) {
-            telegramSenderService.send(
-                    new Text(link),
+        for (Nft userNft : userNfts) {
+            PCloudProvider.ImageData imageData = pCloudProvider.imageDataByIndex(userNft.getIndex());
+            telegramSenderService.sendImage(
+                    imageData.getInputStream().readAllBytes(),
+                    imageData.getFilename(),
                     createBaseButtons(),
                     user
             );

@@ -59,10 +59,12 @@ public class PurchaseService {
         );
     }
 
+    @Deprecated
     public Integer purchasesCount() {
         return ObjectUtils.defaultIfNull(purchaseRepository.purchasesCount(), 0);
     }
 
+    @Deprecated
     public Integer purchasesCount(TgUser tgUser) {
         return ObjectUtils.defaultIfNull(purchaseRepository.purchasesCount(tgUser), 0);
     }

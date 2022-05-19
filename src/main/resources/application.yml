@@ -36,3 +36,7 @@ user-wallet:
 
 ton-provider:
   url: ${TON_PROVIDER_URL}
+
+p-cloud:
+  api-host: ${P_CLOUD_API_HOST:eapi.pcloud.com}
+  access-token: ${P_CLOUD_ACCESS_TOKEN:LSDzZ5QLjde4LwKSZiufur7Z59j9khCj2gyw3Jb7c6EzCjFFFt0V}

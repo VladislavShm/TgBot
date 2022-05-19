@@ -1,4 +1,4 @@
-package com.giraffes.tgbot.service.scheduler;
+package com.giraffes.tgbot.scheduler;
 
 import com.giraffes.tgbot.entity.Auction;
 import com.giraffes.tgbot.entity.TgUser;

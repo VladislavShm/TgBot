@@ -1,5 +1,6 @@
 package com.giraffes.tgbot.service;
 
+import com.giraffes.tgbot.model.tonprovider.NftData;
 import com.giraffes.tgbot.model.tonprovider.TransactionDto;
 import com.giraffes.tgbot.model.tonprovider.WalletInfoDto;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,11 @@ public class TonProviderService {
 
     public List<TransactionDto> getTransactions() {
         return Arrays.stream(Objects.requireNonNull(restTemplate.getForObject("/transactions", TransactionDto[].class)))
+                .collect(Collectors.toList());
+    }
+
+    public List<NftData> getNftData(Integer startIndex) {
+        return Arrays.stream(Objects.requireNonNull(restTemplate.getForObject("/nft-data?startIndex=" + startIndex, NftData[].class)))
                 .collect(Collectors.toList());
     }
 }
