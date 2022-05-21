@@ -23,12 +23,11 @@ tg-bot:
   botUserName: ${BOT_USER_NAME}
   botToken: ${BOT_TOKEN}
 
+auction:
+  wallet: ${AUCTION_ADDRESS}
+
 purchase:
-  wallet: ${WALLET_ADDRESS}
-  basePrice: ${BASE_NFT_PRICE}
-  presalePrice: ${PRESALE_NFT_PRICE}
-  presaleQuantity: ${PRESALE_NFT_QUANTITY}
-  linkToMarketplace: ${LINK_TO_MARKETPLACE}
+  linkToMarketplace: ${LINK_TO_MARKETPLACE:https://beta.disintar.io/collection/UQBj0sX-_qLFMPEx8KFZWX_aukEzjV7DR_Zai0I-NZ_mn2Yy}
 
 user-wallet:
   confirmation-sum: ${CONFIRMATION_WALLET_SUM}

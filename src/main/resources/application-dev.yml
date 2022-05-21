@@ -7,11 +7,8 @@ tg-bot:
   botUserName: grf_nft_test_bot
   botToken: 5189688729:AAFN0jqTcioO5PendAKAilLdLK66VwUiSS8
 
-purchase:
+auction:
   wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
-  basePrice: 10000000000
-  presalePrice: 6000000000
-  presaleQuantity: 300
 
 transactions-update-scheduler:
   enabled: false

@@ -20,8 +20,7 @@ public class PCloudProvider {
         String pathToImage = String.format("/nft/images/%s", filename);
         RemoteFile remoteFile = apiClient.loadFile(pathToImage).execute();
         InputStream inputStream = remoteFile.byteStream();
-        String url = remoteFile.createFileLink().bestUrl().toString();
-        return new ImageData(inputStream, filename, url);
+        return new ImageData(inputStream, filename);
     }
 
     @Data
@@ -29,6 +28,5 @@ public class PCloudProvider {
     public static class ImageData {
         private final InputStream inputStream;
         private final String filename;
-        private final String url;
     }
 }

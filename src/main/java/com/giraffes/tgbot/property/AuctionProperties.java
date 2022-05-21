@@ -10,8 +10,8 @@ import javax.validation.constraints.NotBlank;
 @Data
 @Validated
 @Configuration
-@ConfigurationProperties("purchase")
-public class PurchaseProperties {
+@ConfigurationProperties("auction")
+public class AuctionProperties {
     @NotBlank
-    private String linkToMarketplace;
+    private String wallet;
 }

@@ -8,11 +8,8 @@ tg-bot:
   botUserName: botUserNameMock
   botToken: botTokenMock
 
-purchase:
+auction:
   wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
-  basePrice: 10000000000
-  presalePrice: 6000000000
-  presaleQuantity: 300
 
 logging:
   level:

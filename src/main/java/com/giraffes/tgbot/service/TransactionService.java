@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionService {
     private final AuctionService auctionService;
-    private final PurchaseService purchaseService;
     private final TransactionRepository transactionRepository;
     private final WalletConfirmationService walletConfirmationService;
 
@@ -43,9 +42,7 @@ public class TransactionService {
     private void processTransactions(List<Transaction> transactions) {
         for (Transaction transaction : transactions) {
             try {
-                if (purchaseService.isPurchaseTransaction(transaction)) {
-                    purchaseService.registerPurchase(transaction);
-                } else if (walletConfirmationService.isWalletConfirmation(transaction)) {
+                if (walletConfirmationService.isWalletConfirmation(transaction)) {
                     walletConfirmationService.confirmWallet(transaction);
                 } else if (auctionService.isAuctionTransaction(transaction)) {
                     auctionService.processAuctionPay(transaction);

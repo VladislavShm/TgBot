@@ -5,11 +5,8 @@ import com.giraffes.tgbot.entity.Nft;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
-import com.giraffes.tgbot.property.PurchaseProperties;
-import com.giraffes.tgbot.service.GiftService;
 import com.giraffes.tgbot.service.NftService;
 import com.giraffes.tgbot.service.PCloudProvider;
-import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -31,11 +28,8 @@ import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
 public class BaseLocationProcessor extends LocationProcessor {
     private static final Pattern ID_PATTERN = Pattern.compile("^\\d+$");
 
-    private final PurchaseProperties purchaseProperties;
-    private final PurchaseService purchaseService;
     private final PCloudProvider pCloudProvider;
     private final TgUserService tgUserService;
-    private final GiftService giftService;
     private final NftService nftService;
 
     @Override
@@ -46,23 +40,22 @@ public class BaseLocationProcessor extends LocationProcessor {
     @Override
     @SneakyThrows
     protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
-        Integer availableNftQuantity = getAvailableNftQuantity();
         Optional<OkButton> commonButton = messageToButtonTransformer.determineButton(text, OkButton.class);
         if (redirected || commonButton.isPresent()) {
-            sendBaseMessage(availableNftQuantity, user);
+            sendBaseMessage(user);
             return Optional.empty();
         }
 
         return messageToButtonTransformer.determineButton(text, BaseLocationButton.class)
-                .map(button -> processButtonClickEvent(user, button, availableNftQuantity))
+                .map(button -> processButtonClickEvent(user, button))
                 .or(() -> {
                     checkInvitation(text, user);
-                    sendBaseMessage(availableNftQuantity, user);
+                    sendBaseMessage(user);
                     return Optional.empty();
                 });
     }
 
-    private Location processButtonClickEvent(TgUser user, BaseLocationButton button, Integer availableNftQuantity) {
+    private Location processButtonClickEvent(TgUser user, BaseLocationButton button) {
         switch (button) {
             case BUY_BUTTON:
                 return Location.PURCHASE;
@@ -75,7 +68,7 @@ public class BaseLocationProcessor extends LocationProcessor {
             case AUCTION_BUTTON:
                 return Location.AUCTIONS_BROWSE;
             case ABOUT_US_BUTTON:
-                sendGiraffeInfo(availableNftQuantity, user);
+                sendGiraffeInfo(user);
                 return getLocation();
             case SETTINGS_BUTTON:
                 return Location.SETTINGS;
@@ -84,24 +77,17 @@ public class BaseLocationProcessor extends LocationProcessor {
         }
     }
 
-    private int getAvailableNftQuantity() {
-        return purchaseProperties.getPresaleQuantity() - (purchaseService.purchasesCount() + giftService.getGiftedNFTQuantity());
-    }
-
-    private void sendBaseMessage(Integer availableNftQuantity, TgUser user) {
+    private void sendBaseMessage(TgUser user) {
         telegramSenderService.send(
-                new Text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)\n\n" +
-                        "Текущая стадия коллекции: <b>PRESALE</b>\nДоступно " + availableNftQuantity + " \uD83E\uDD92 к приобритению."),
+                new Text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)"),
                 createBaseButtons(),
                 user
         );
     }
 
-    private void sendGiraffeInfo(Integer availableNftQuantity, TgUser user) {
+    private void sendGiraffeInfo(TgUser user) {
         String message = "Мы - первый инвестиционный DAO на блокчейне TON - " +
                 "<a href=\"https://telegra.ph/Giraffe-Capital---investicionnyj-DAO-na-blokchejne-TON-03-21\">GIRAFFE CAPITAL\uD83E\uDD92</a>\n" +
-                "В данный момент идёт этап <b>PRESALE</b>.\nОсталось nft - " +
-                availableNftQuantity +
                 "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
 
         telegramSenderService.send(new Text(message), createBaseButtons(), user);

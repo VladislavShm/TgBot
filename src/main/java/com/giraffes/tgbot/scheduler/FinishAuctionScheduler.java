@@ -5,8 +5,12 @@ import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.entity.UserAuctionActivity;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
-import com.giraffes.tgbot.property.PurchaseProperties;
-import com.giraffes.tgbot.service.*;
+import com.giraffes.tgbot.property.AuctionProperties;
+import com.giraffes.tgbot.service.AuctionSchedulerService;
+import com.giraffes.tgbot.service.AuctionService;
+import com.giraffes.tgbot.service.TelegramSenderService;
+import com.giraffes.tgbot.service.TonLinkService;
+import com.giraffes.tgbot.service.UserAuctionActivityService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +31,7 @@ import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
 public class FinishAuctionScheduler {
     private final UserAuctionActivityService userAuctionActivityService;
     private final TelegramSenderService telegramSenderService;
-    private final PurchaseProperties purchaseProperties;
+    private final AuctionProperties auctionProperties;
     private final TonLinkService tonLinkService;
 
     @Lazy
@@ -90,12 +94,12 @@ public class FinishAuctionScheduler {
                 user
         );
 
-        String link = tonLinkService.createLink(purchaseProperties.getWallet(), highestBid.getBid());
+        String link = tonLinkService.createLink(auctionProperties.getWallet(), highestBid.getBid());
         telegramSenderService.send(
                 new Text(String.format(
                         "Для того, чтобы получить выигранный лот, Вам необходимо сделать перевод, с указанного в настройках кошелька, на сумму, равную %s TON на кошелек\n<b><code>%s</code></b>\nИли же Вы можете воспользоваться готовой ссылкой\n\n<a href='%s'>%s</a>",
                         TonCoinUtils.toHumanReadable(highestBid.getBid()),
-                        purchaseProperties.getWallet(),
+                        auctionProperties.getWallet(),
                         link,
                         link
                 )),
