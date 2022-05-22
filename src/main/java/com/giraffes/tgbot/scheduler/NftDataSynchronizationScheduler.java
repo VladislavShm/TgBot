@@ -5,7 +5,6 @@ import com.giraffes.tgbot.service.NftService;
 import com.giraffes.tgbot.service.TonProviderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,12 +23,17 @@ public class NftDataSynchronizationScheduler {
     @Scheduled(fixedDelay = 60000, initialDelay = 1000)
     public void synchronizingNftData() {
         log.info("Synchronizing NFT data");
-        updateNftsStartingFrom(ObjectUtils.defaultIfNull(nftService.maxIndex() + 1, 0));
+
+        Optional.ofNullable(nftService.maxIndex())
+                .map(maxIndex -> maxIndex + 1)
+                .or(() -> Optional.of(0))
+                .ifPresent(this::updateNftsStartingFrom);
+
         log.info("NFTs have been synchronized");
     }
 
-    private void updateNftsStartingFrom(Integer index) {
-        Optional.of(tonProviderService.getNftData(index))
+    private void updateNftsStartingFrom(Integer startFrom) {
+        Optional.of(tonProviderService.getNftData(startFrom))
                 .filter(list -> !list.isEmpty())
                 .stream()
                 .peek(nftService::updateNfts)
