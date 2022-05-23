@@ -5,12 +5,14 @@ import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.tonprovider.NftData;
 import com.giraffes.tgbot.repository.NftRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.ObjectUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -21,17 +23,30 @@ public class NftService {
         return nftRepository.findAllByOwner(tgUser.getWallet());
     }
 
-    public void updateNfts(List<NftData> nftDatas) {
-        for (NftData nftData : nftDatas) {
-            Nft nft = new Nft();
-            nft.setAddress(nftData.getAddress());
-            nft.setIndex(nftData.getIndex());
+    public void createOrUpdateNfts(List<NftData> nftDatas) {
+        nftDatas.forEach(
+                nftData ->
+                        nftRepository.findByIndex(nftData.getIndex())
+                                .ifPresentOrElse(
+                                        nft -> updateNftOwnerIfNecessary(nftData, nft),
+                                        () -> createNewNft(nftData)
+                                )
+        );
+    }
+
+    private void updateNftOwnerIfNecessary(NftData nftData, Nft nft) {
+        if (!StringUtils.equals(nft.getOwner(), nftData.getOwner())) {
+            log.debug("NFT owner has been changed {} -> {}. Index: {}", nft.getOwner(), nftData.getOwner(), nft.getIndex());
             nft.setOwner(nftData.getOwner());
-            nftRepository.save(nft);
         }
     }
 
-    public Integer maxIndex() {
-        return nftRepository.maxIndex();
+    private void createNewNft(NftData nftData) {
+        log.debug("Creating new NFT: {}", nftData);
+        Nft newNft = new Nft();
+        newNft.setAddress(nftData.getAddress());
+        newNft.setIndex(nftData.getIndex());
+        newNft.setOwner(nftData.getOwner());
+        nftRepository.save(newNft);
     }
 }

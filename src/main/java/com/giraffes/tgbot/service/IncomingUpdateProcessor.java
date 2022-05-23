@@ -34,7 +34,6 @@ public class IncomingUpdateProcessor {
     public void process(Update update) {
         log.info("Processing request: {}", update);
         TgUser user = tgUserService.authenticateUser(update);
-        log.info("Updated request has been successfully processed");
 
         if (update.hasMessage()) {
             processIncomingMessageUpdate(update, user);

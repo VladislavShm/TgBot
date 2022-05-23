@@ -24,10 +24,7 @@ public class NftDataSynchronizationScheduler {
     public void synchronizingNftData() {
         log.info("Synchronizing NFT data");
 
-        Optional.ofNullable(nftService.maxIndex())
-                .map(maxIndex -> maxIndex + 1)
-                .or(() -> Optional.of(0))
-                .ifPresent(this::updateNftsStartingFrom);
+        updateNftsStartingFrom(0);
 
         log.info("NFTs have been synchronized");
     }
@@ -36,7 +33,7 @@ public class NftDataSynchronizationScheduler {
         Optional.of(tonProviderService.getNftData(startFrom))
                 .filter(list -> !list.isEmpty())
                 .stream()
-                .peek(nftService::updateNfts)
+                .peek(nftService::createOrUpdateNfts)
                 .flatMap(Collection::stream)
                 .map(NftData::getIndex)
                 .max(Integer::compareTo)
