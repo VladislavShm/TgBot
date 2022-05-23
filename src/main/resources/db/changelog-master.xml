@@ -30,5 +30,8 @@
     <include file="db/changelog/add-our-wallet-info-to-transaction.xml"/>
     <include file="db/changelog/nft-creation.xml"/>
     <include file="db/changelog/update-nft-table.xml"/>
+    <include file="db/changelog/add-nft-timestamps.xml"/>
+    <include file="db/changelog/drop-gift-table.xml"/>
+    <include file="db/changelog/drop-purchase-table.xml"/>
 
 </databaseChangeLog>
