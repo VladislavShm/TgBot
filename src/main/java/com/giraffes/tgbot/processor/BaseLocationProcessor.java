@@ -18,6 +18,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.giraffes.tgbot.model.internal.telegram.ButtonName.BaseLocationButton;
 import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
@@ -96,6 +97,8 @@ public class BaseLocationProcessor extends LocationProcessor {
     @SneakyThrows
     private void sendMyGiraffesInfo(TgUser user) {
         List<Nft> userNfts = nftService.getUserNFTs(user);
+        List<PCloudProvider.ImageData> imageDataList = pCloudProvider.imageDataByIndexes(userNfts.stream().map(Nft::getIndex).collect(Collectors.toList()));
+
         String message = String.format(
                 "На данный момент у Вас имеется <i><b>%d</b></i> жирафов.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe",
@@ -108,8 +111,7 @@ public class BaseLocationProcessor extends LocationProcessor {
                 user
         );
 
-        for (Nft userNft : userNfts) {
-            PCloudProvider.ImageData imageData = pCloudProvider.imageDataByIndex(userNft.getIndex());
+        for (PCloudProvider.ImageData imageData : imageDataList) {
             telegramSenderService.sendImage(
                     imageData.getInputStream().readAllBytes(),
                     imageData.getFilename(),

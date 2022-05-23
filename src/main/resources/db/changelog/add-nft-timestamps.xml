@@ -11,5 +11,11 @@
             <column name="update_date_time" type="DATETIME"/>
         </addColumn>
     </changeSet>
+    <changeSet id="1653323303568-2" author="giraffe">
+        <update tableName="nft">
+            <column name="create_date_time" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="update_date_time" valueComputed="CURRENT_TIMESTAMP"/>
+        </update>
+    </changeSet>
 
 </databaseChangeLog>
