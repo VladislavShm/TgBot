@@ -1,5 +1,6 @@
 package com.giraffes.tgbot.service;
 
+import com.giraffes.tgbot.entity.TgGroup;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
@@ -18,6 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import java.io.ByteArrayInputStream;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +62,18 @@ public class TelegramSenderService {
                         .chatId(user.getChatId())
                         .replyMarkup(mapKeyboard(keyboard))
                         .parseMode("html")
+                        .build()
+        );
+    }
+
+    @SneakyThrows
+    public void sendImageToGroup(Text caption, byte[] image, String imageName, TgGroup group) {
+        tgSender.execute(
+                SendPhoto.builder()
+                        .photo(new InputFile(new ByteArrayInputStream(image), imageName))
+                        .chatId(group.getChatId().toString())
+                        .parseMode("html")
+                        .caption(mapText(caption, group.getLocale()))
                         .build()
         );
     }
@@ -118,10 +132,14 @@ public class TelegramSenderService {
     }
 
     private String mapText(Text text) {
+        return mapText(text, LocaleContextHolder.getLocale());
+    }
+
+    private String mapText(Text text, Locale locale) {
         return messageSource.getMessage(
                 text.getMessage(),
                 text.getParams().toArray(new String[0]),
-                LocaleContextHolder.getLocale()
+                locale
         );
     }
 }

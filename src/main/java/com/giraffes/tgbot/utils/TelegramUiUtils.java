@@ -10,23 +10,6 @@ import java.util.Collections;
 
 @UtilityClass
 public class TelegramUiUtils {
-    public static ReplyKeyboardMarkup createCancelButtonKeyboard() {
-        return ReplyKeyboardMarkup.builder()
-                .keyboardRow(new KeyboardRow(
-                        Collections.singletonList(
-                                new KeyboardButton("Отмена")
-                        )
-                ))
-                .resizeKeyboard(true)
-                .build();
-    }
-
-    public static ReplyKeyboardMarkup createBackButtonKeyboard() {
-        return ReplyKeyboardMarkup.builder()
-                .keyboardRow(createBackButtonRow())
-                .resizeKeyboard(true)
-                .build();
-    }
 
     public static KeyboardRow createBackButtonRow() {
         return new KeyboardRow(

@@ -33,5 +33,8 @@
     <include file="db/changelog/add-nft-timestamps.xml"/>
     <include file="db/changelog/drop-gift-table.xml"/>
     <include file="db/changelog/drop-purchase-table.xml"/>
+    <include file="db/changelog/add-tg-group.xml"/>
+    <include file="db/changelog/add-nft-last-value.xml"/>
+    <include file="db/changelog/add-locale-tg-group.xml"/>
 
 </databaseChangeLog>

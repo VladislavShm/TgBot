@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +25,7 @@ public class PCloudProvider {
     private final ApiClient apiClient;
 
     @SneakyThrows
-    public List<ImageData> imageDataByIndexes(List<Integer> indexes) {
+    public List<ImageData> imageDataByIndexes(Collection<Integer> indexes) {
         List<ImageData> result = new ArrayList<>(indexes.size());
         CountDownLatch latch = new CountDownLatch(indexes.size());
         for (Integer index : indexes) {

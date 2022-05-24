@@ -96,13 +96,13 @@ public class BaseLocationProcessor extends LocationProcessor {
 
     @SneakyThrows
     private void sendMyGiraffesInfo(TgUser user) {
-        List<Nft> userNfts = nftService.getUserNFTs(user);
-        List<PCloudProvider.ImageData> imageDataList = pCloudProvider.imageDataByIndexes(userNfts.stream().map(Nft::getIndex).collect(Collectors.toList()));
+        List<Integer> userNftsIndexes = nftService.getUserNFTs(user).stream().map(Nft::getIndex).collect(Collectors.toList());
+        List<PCloudProvider.ImageData> imageDataList = pCloudProvider.imageDataByIndexes(userNftsIndexes);
 
         String message = String.format(
                 "На данный момент у Вас имеется <i><b>%d</b></i> жирафов.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe",
-                userNfts.size()
+                userNftsIndexes.size()
         );
 
         telegramSenderService.send(

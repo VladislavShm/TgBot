@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -18,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NftService {
     private final NftRepository nftRepository;
+    private final AmqpSender amqpSender;
 
     public List<Nft> getUserNFTs(TgUser tgUser) {
         return nftRepository.findAllByOwner(tgUser.getWallet());
@@ -36,8 +38,13 @@ public class NftService {
 
     private void updateNftOwnerIfNecessary(NftData nftData, Nft nft) {
         if (!StringUtils.equals(nft.getOwner(), nftData.getOwner())) {
-            log.debug("NFT owner has been changed {} -> {}. Index: {}", nft.getOwner(), nftData.getOwner(), nft.getIndex());
+            log.debug("NFT owner has been changed {} -> {}, value {} -> {}. Index: {}", nft.getOwner(), nftData.getOwner(), nft.getLastValue(), nftData.getValue(), nft.getIndex());
             nft.setOwner(nftData.getOwner());
+            nft.setLastValue(nftData.getValue());
+            amqpSender.sendNftOwnerChanged(nft.getId());
+        } else if (!Objects.deepEquals(nftData.getValue(), nft.getLastValue())) {
+            log.debug("NFT value has been changed value: {} -> {}. Index: {}", nft.getLastValue(), nftData.getValue(), nft.getIndex());
+            nft.setLastValue(nftData.getValue());
         }
     }
 
@@ -47,6 +54,11 @@ public class NftService {
         newNft.setAddress(nftData.getAddress());
         newNft.setIndex(nftData.getIndex());
         newNft.setOwner(nftData.getOwner());
+        newNft.setLastValue(nftData.getValue());
         nftRepository.save(newNft);
+    }
+
+    public Nft getNftById(Long nftId) {
+        return nftRepository.getById(nftId);
     }
 }

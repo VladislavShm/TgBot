@@ -11,6 +11,11 @@ logging:
         tgbot: ${LOGGING_APP_LEVEL}
 
 spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   jpa:
     properties:
       hibernate:
