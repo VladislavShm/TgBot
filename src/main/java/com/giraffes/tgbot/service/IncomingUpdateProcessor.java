@@ -62,7 +62,7 @@ public class IncomingUpdateProcessor {
                         .map(ChatMemberUpdated::getChat)
                         .map(Chat::getType);
 
-        if (chatType.filter("group"::equals).isPresent()) {
+        if (chatType.filter(type -> "group".equals(type) || "supergroup".equals(type)).isPresent()) {
             processGroupMemberStatusChangeEvent(update, myChatMember);
         } else if (chatType.filter("private"::equals).isPresent()) {
             processPrivateMemberStatusChangeEvent(update);
@@ -105,7 +105,7 @@ public class IncomingUpdateProcessor {
                         .map(Message::getChat)
                         .map(Chat::getType);
 
-        if (chatType.filter("group"::equals).isPresent()) {
+        if (chatType.filter(type -> "group".equals(type) || "supergroup".equals(type)).isPresent()) {
             log.info("Skipping Message update on group activity");
         } else if (chatType.filter("private"::equals).isPresent()) {
             TgUser user = tgUserService.authenticateUser(update);
