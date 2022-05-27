@@ -61,4 +61,24 @@ public class NftService {
     public Nft getNftById(Long nftId) {
         return nftRepository.getById(nftId);
     }
+
+    public int getNftRank(Nft nft) {
+        return nftRepository.getNumberNftRarityHigherOrEqual(nft.getRarity());
+    }
+
+    public boolean isAnyRarityNull() {
+        return nftRepository.isAnyRarityNull();
+    }
+
+    public Integer getLastIndex() {
+        return nftRepository.lastIndex();
+    }
+
+    public List<Nft> findAll() {
+        return nftRepository.findAll();
+    }
+
+    public long totalNftNumber() {
+        return nftRepository.count();
+    }
 }

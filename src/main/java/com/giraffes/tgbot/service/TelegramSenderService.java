@@ -67,6 +67,19 @@ public class TelegramSenderService {
     }
 
     @SneakyThrows
+    public void sendImage(Text caption, byte[] image, String imageName, Keyboard keyboard, TgUser user) {
+        tgSender.execute(
+                SendPhoto.builder()
+                        .photo(new InputFile(new ByteArrayInputStream(image), imageName))
+                        .chatId(user.getChatId())
+                        .caption(mapText(caption, user.getLocale()))
+                        .replyMarkup(mapKeyboard(keyboard))
+                        .parseMode("html")
+                        .build()
+        );
+    }
+
+    @SneakyThrows
     public void sendImageToGroup(Text caption, byte[] image, String imageName, TgGroup group) {
         tgSender.execute(
                 SendPhoto.builder()

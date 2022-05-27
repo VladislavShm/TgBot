@@ -3,25 +3,29 @@ package com.giraffes.tgbot.processor;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.Nft;
 import com.giraffes.tgbot.entity.TgUser;
+import com.giraffes.tgbot.model.NftImage;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.service.NftService;
 import com.giraffes.tgbot.service.PCloudProvider;
 import com.giraffes.tgbot.service.TgUserService;
+import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.giraffes.tgbot.model.internal.telegram.ButtonName.BaseLocationButton;
 import static com.giraffes.tgbot.model.internal.telegram.ButtonName.OkButton;
+import static java.util.stream.Collectors.groupingBy;
 
 @Slf4j
 @Component
@@ -96,13 +100,14 @@ public class BaseLocationProcessor extends LocationProcessor {
 
     @SneakyThrows
     private void sendMyGiraffesInfo(TgUser user) {
-        List<Integer> userNftsIndexes = nftService.getUserNFTs(user).stream().map(Nft::getIndex).collect(Collectors.toList());
-        List<PCloudProvider.ImageData> imageDataList = pCloudProvider.imageDataByIndexes(userNftsIndexes);
+        List<Nft> nfts = nftService.getUserNFTs(user);
+        Map<Integer, List<Nft>> nftByIndex = nfts.stream().collect(groupingBy(Nft::getIndex));
+        Map<Integer, NftImage> nftImageList = pCloudProvider.imageDataByIndexes(nftByIndex.keySet());
 
         String message = String.format(
                 "На данный момент у Вас имеется <i><b>%d</b></i> жирафов.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe",
-                userNftsIndexes.size()
+                nfts.size()
         );
 
         telegramSenderService.send(
@@ -111,14 +116,40 @@ public class BaseLocationProcessor extends LocationProcessor {
                 user
         );
 
-        for (PCloudProvider.ImageData imageData : imageDataList) {
-            telegramSenderService.sendImage(
-                    imageData.getInputStream().readAllBytes(),
-                    imageData.getFilename(),
-                    createBaseButtons(),
-                    user
-            );
-        }
+        long totalNftNumber = nftService.totalNftNumber();
+        nftImageList.forEach((index, nftImage) -> {
+            Nft nft = nftByIndex.get(index).stream().findFirst().orElseThrow();
+            int nftRank = nftService.getNftRank(nft);
+            BigDecimal rarity = nft.getRarity();
+            Optional.ofNullable(nft.getLastValue())
+                    .map(TonCoinUtils::toHumanReadable)
+                    .map(lastPrice ->
+                            new Text("my_giraffes.nft_caption")
+                                    .param(index)
+                                    .param(lastPrice)
+                                    .param(rarity)
+                                    .param(nftRank)
+                                    .param(totalNftNumber)
+                    )
+                    .or(() -> Optional.of(
+                            new Text("my_giraffes.nft_caption_without_price")
+                                    .param(index)
+                                    .param(rarity)
+                                    .param(nftRank)
+                                    .param(totalNftNumber)
+                    ))
+                    .ifPresent(text ->
+                            telegramSenderService.sendImage(
+                                    text,
+                                    nftImage.getImage(),
+                                    nftImage.getFilename(),
+                                    createBaseButtons(),
+                                    user
+                            )
+                    );
+
+        });
+
     }
 
     private void sendInviteInfo(TgUser user) {
