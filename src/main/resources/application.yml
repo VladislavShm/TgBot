@@ -44,3 +44,8 @@ ton-provider:
 p-cloud:
   api-host: ${P_CLOUD_API_HOST:eapi.pcloud.com}
   access-token: ${P_CLOUD_ACCESS_TOKEN:LSDzZ5QLjde4LwKSZiufur7Z59j9khCj2gyw3Jb7c6EzCjFFFt0V}
+
+nft-owner-changed:
+  notification:
+    enabled: ${NFT_OWNER_CHANGED_NOTIF_ENABLED:true}
+

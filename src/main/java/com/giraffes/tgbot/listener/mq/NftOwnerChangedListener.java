@@ -9,7 +9,9 @@ import com.giraffes.tgbot.service.TgGroupService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
@@ -25,8 +27,16 @@ public class NftOwnerChangedListener {
     private final TgGroupService tgGroupService;
     private final NftService nftService;
 
+    @Value("${nft-owner-changed.notification.enabled}")
+    private boolean notificationEnabled;
+
     @RabbitListener(concurrency = "1", queues = "notification.nft-owner-changed")
     public void process(Long nftId) {
+        if (!notificationEnabled) {
+            log.debug("NFT owner changed notification disabled, SKipping NFT: " + nftId);
+            return;
+        }
+
         try {
             Nft nft = nftService.getNftById(nftId);
             if (nft.getLastValue() == null) {
