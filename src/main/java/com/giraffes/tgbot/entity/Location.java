@@ -4,6 +4,8 @@ public enum Location {
     BASE,
     PURCHASE,
 
+    ABOUT_COLLECTION,
+
     SETTINGS,
     WALLET_SETTINGS,
     WALLET_CONFIRMATION,

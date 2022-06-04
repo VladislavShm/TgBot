@@ -34,7 +34,7 @@ public final class ButtonName {
         INVITE_INFO_BUTTON("base_location.button.invite_info"),
         MY_GIRAFFES_BUTTON("base_location.button.my_giraffes"),
         AUCTION_BUTTON("base_location.button.auction"),
-        ABOUT_US_BUTTON("base_location.button.about_us"),
+        ABOUT_COLLECTION_BUTTON("base_location.button.about_collection"),
         SETTINGS_BUTTON("base_location.button.settings"),
         ;
 

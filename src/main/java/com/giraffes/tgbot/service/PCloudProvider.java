@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +27,10 @@ import java.util.concurrent.TimeUnit;
 public class PCloudProvider {
     private final static Integer CLOUD_LATCH_AWAIT_SECONDS = 60;
     private final ApiClient apiClient;
+
+    public NftImage imageDataByIndex(Integer index) {
+        return imageDataByIndexes(Collections.singleton(index)).get(index);
+    }
 
     @SneakyThrows
     public Map<Integer, NftImage> imageDataByIndexes(Collection<Integer> indexes) {

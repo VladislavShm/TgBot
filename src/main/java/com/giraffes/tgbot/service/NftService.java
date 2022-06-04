@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -77,5 +78,9 @@ public class NftService {
 
     public long totalNftNumber() {
         return nftRepository.count();
+    }
+
+    public Optional<Nft> findByIndex(Integer index) {
+        return nftRepository.findByIndex(index);
     }
 }

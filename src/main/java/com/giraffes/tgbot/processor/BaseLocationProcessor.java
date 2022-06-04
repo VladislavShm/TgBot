@@ -72,9 +72,8 @@ public class BaseLocationProcessor extends LocationProcessor {
                 return getLocation();
             case AUCTION_BUTTON:
                 return Location.AUCTIONS_BROWSE;
-            case ABOUT_US_BUTTON:
-                sendGiraffeInfo(user);
-                return getLocation();
+            case ABOUT_COLLECTION_BUTTON:
+                return Location.ABOUT_COLLECTION;
             case SETTINGS_BUTTON:
                 return Location.SETTINGS;
             default:
@@ -88,14 +87,6 @@ public class BaseLocationProcessor extends LocationProcessor {
                 createBaseButtons(),
                 user
         );
-    }
-
-    private void sendGiraffeInfo(TgUser user) {
-        String message = "Мы - первый инвестиционный DAO на блокчейне TON - " +
-                "<a href=\"https://telegra.ph/Giraffe-Capital---investicionnyj-DAO-na-blokchejne-TON-03-21\">GIRAFFE CAPITAL\uD83E\uDD92</a>\n" +
-                "\uD83E\uDD92\nУсловия конкурса <a href=\"https://t.me/giraffe_capital/21\">ЗДЕСЬ</a>";
-
-        telegramSenderService.send(new Text(message), createBaseButtons(), user);
     }
 
     @SneakyThrows
@@ -241,7 +232,7 @@ public class BaseLocationProcessor extends LocationProcessor {
                 )
                 .line(
                         BaseLocationButton.AUCTION_BUTTON,
-                        BaseLocationButton.ABOUT_US_BUTTON,
+                        BaseLocationButton.ABOUT_COLLECTION_BUTTON,
                         BaseLocationButton.SETTINGS_BUTTON
                 );
     }
