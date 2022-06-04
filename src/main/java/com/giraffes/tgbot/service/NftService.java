@@ -25,15 +25,12 @@ public class NftService {
         return nftRepository.findAllByOwner(tgUser.getWallet());
     }
 
-    public void createOrUpdateNfts(List<NftData> nftDatas) {
-        nftDatas.forEach(
-                nftData ->
-                        nftRepository.findByIndex(nftData.getIndex())
-                                .ifPresentOrElse(
-                                        nft -> updateNftOwnerIfNecessary(nftData, nft),
-                                        () -> createNewNft(nftData)
-                                )
-        );
+    public void createOrUpdateNfts(NftData nftData) {
+        nftRepository.findByIndex(nftData.getIndex())
+                .ifPresentOrElse(
+                        nft -> updateNftOwnerIfNecessary(nftData, nft),
+                        () -> createNewNft(nftData)
+                );
     }
 
     private void updateNftOwnerIfNecessary(NftData nftData, Nft nft) {

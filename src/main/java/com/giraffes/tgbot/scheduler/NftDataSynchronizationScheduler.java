@@ -9,9 +9,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Optional;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -30,11 +27,9 @@ public class NftDataSynchronizationScheduler {
     }
 
     private void updateNftsStartingFrom(Integer startFrom) {
-        Optional.of(tonProviderService.getNftData(startFrom))
-                .filter(list -> !list.isEmpty())
+        tonProviderService.getNftData(startFrom)
                 .stream()
                 .peek(nftService::createOrUpdateNfts)
-                .flatMap(Collection::stream)
                 .map(NftData::getIndex)
                 .max(Integer::compareTo)
                 .map(lastIndex -> lastIndex + 1)
