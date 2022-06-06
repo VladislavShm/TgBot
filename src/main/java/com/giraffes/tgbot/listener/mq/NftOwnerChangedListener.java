@@ -49,7 +49,7 @@ public class NftOwnerChangedListener {
             tgGroupService.findAllForOwnerChangedNotification()
                     .forEach(tgGroup -> telegramSenderService.sendImageToGroup(
                             new Text("notification.nft_owner_changed")
-                                    .param(nft.getIndex() + 1)
+                                    .param(nft.getIndex())
                                     .param(TonCoinUtils.toHumanReadable(nft.getLastValue()))
                                     .param(nft.getRarity())
                                     .param(nftRank)
