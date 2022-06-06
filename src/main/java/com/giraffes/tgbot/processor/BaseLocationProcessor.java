@@ -92,8 +92,6 @@ public class BaseLocationProcessor extends LocationProcessor {
     @SneakyThrows
     private void sendMyGiraffesInfo(TgUser user) {
         List<Nft> nfts = nftService.getUserNFTs(user);
-        Map<Integer, List<Nft>> nftByIndex = nfts.stream().collect(groupingBy(Nft::getIndex));
-        Map<Integer, NftImage> nftImageList = pCloudProvider.imageDataByIndexes(nftByIndex.keySet());
 
         String message = String.format(
                 "На данный момент у Вас имеется <i><b>%d</b></i> жирафов.\n\n" +
@@ -107,40 +105,44 @@ public class BaseLocationProcessor extends LocationProcessor {
                 user
         );
 
-        long totalNftNumber = nftService.totalNftNumber();
-        nftImageList.forEach((index, nftImage) -> {
-            Nft nft = nftByIndex.get(index).stream().findFirst().orElseThrow();
-            int nftRank = nftService.getNftRank(nft);
-            BigDecimal rarity = nft.getRarity();
-            Optional.ofNullable(nft.getLastValue())
-                    .map(TonCoinUtils::toHumanReadable)
-                    .map(lastPrice ->
-                            new Text("my_giraffes.nft_caption")
-                                    .param(index)
-                                    .param(lastPrice)
-                                    .param(rarity)
-                                    .param(nftRank)
-                                    .param(totalNftNumber)
-                    )
-                    .or(() -> Optional.of(
-                            new Text("my_giraffes.nft_caption_without_price")
-                                    .param(index)
-                                    .param(rarity)
-                                    .param(nftRank)
-                                    .param(totalNftNumber)
-                    ))
-                    .ifPresent(text ->
-                            telegramSenderService.sendImage(
-                                    text,
-                                    nftImage.getImage(),
-                                    nftImage.getFilename(),
-                                    createBaseButtons(),
-                                    user
-                            )
-                    );
+        if (!nfts.isEmpty()) {
+            Map<Integer, List<Nft>> nftByIndex = nfts.stream().collect(groupingBy(Nft::getIndex));
+            Map<Integer, NftImage> nftImageList = pCloudProvider.imageDataByIndexes(nftByIndex.keySet());
 
-        });
+            long totalNftNumber = nftService.totalNftNumber();
+            nftImageList.forEach((index, nftImage) -> {
+                Nft nft = nftByIndex.get(index).stream().findFirst().orElseThrow();
+                int nftRank = nftService.getNftRank(nft);
+                BigDecimal rarity = nft.getRarity();
+                Optional.ofNullable(nft.getLastValue())
+                        .map(TonCoinUtils::toHumanReadable)
+                        .map(lastPrice ->
+                                new Text("my_giraffes.nft_caption")
+                                        .param(index)
+                                        .param(lastPrice)
+                                        .param(rarity)
+                                        .param(nftRank)
+                                        .param(totalNftNumber)
+                        )
+                        .or(() -> Optional.of(
+                                new Text("my_giraffes.nft_caption_without_price")
+                                        .param(index)
+                                        .param(rarity)
+                                        .param(nftRank)
+                                        .param(totalNftNumber)
+                        ))
+                        .ifPresent(text ->
+                                telegramSenderService.sendImage(
+                                        text,
+                                        nftImage.getImage(),
+                                        nftImage.getFilename(),
+                                        createBaseButtons(),
+                                        user
+                                )
+                        );
 
+            });
+        }
     }
 
     private void sendInviteInfo(TgUser user) {

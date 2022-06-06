@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,7 +24,9 @@ public class NftService {
     private final AmqpSender amqpSender;
 
     public List<Nft> getUserNFTs(TgUser tgUser) {
-        return nftRepository.findAllByOwner(tgUser.getWallet());
+        return StringUtils.isNotBlank(tgUser.getWallet())
+                ? nftRepository.findAllByOwner(tgUser.getWallet())
+                : Collections.emptyList();
     }
 
     public void createOrUpdateNfts(NftData nftData) {
