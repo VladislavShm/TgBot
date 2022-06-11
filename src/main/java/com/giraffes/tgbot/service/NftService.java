@@ -6,6 +6,7 @@ import com.giraffes.tgbot.model.tonprovider.NftData;
 import com.giraffes.tgbot.repository.NftRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -85,5 +86,9 @@ public class NftService {
 
     public Optional<Nft> findByIndex(Integer index) {
         return nftRepository.findByIndex(index);
+    }
+
+    public Integer findUserNftCount(TgUser tgUser) {
+        return ObjectUtils.defaultIfNull(nftRepository.findCountByOwner(tgUser.getWallet()), 0);
     }
 }

@@ -37,5 +37,6 @@
     <include file="db/changelog/add-nft-last-value.xml"/>
     <include file="db/changelog/add-locale-tg-group.xml"/>
     <include file="db/changelog/add-rarity-to-nft.xml"/>
+    <include file="db/changelog/return-purchase-table.xml"/>
 
 </databaseChangeLog>

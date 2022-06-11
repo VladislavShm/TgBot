@@ -10,8 +10,10 @@ tg-bot:
 auction:
   wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
 
-transactions-update-scheduler:
-  enabled: false
+purchase:
+  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  price: 500000000
+  presaleQuantity: 100
 
 logging:
   level:
