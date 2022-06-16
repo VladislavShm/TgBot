@@ -8,6 +8,7 @@ import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.service.NftService;
 import com.giraffes.tgbot.service.PCloudProvider;
+import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ import static java.util.stream.Collectors.groupingBy;
 public class BaseLocationProcessor extends LocationProcessor {
     private static final Pattern ID_PATTERN = Pattern.compile("^\\d+$");
 
+    private final PurchaseService purchaseService;
     private final PCloudProvider pCloudProvider;
     private final TgUserService tgUserService;
     private final NftService nftService;
@@ -93,10 +95,12 @@ public class BaseLocationProcessor extends LocationProcessor {
     private void sendMyGiraffesInfo(TgUser user) {
         List<Nft> nfts = nftService.getUserNFTs(user);
 
+        Integer purchaseCount = purchaseService.purchaseCount(user);
         String message = String.format(
-                "На данный момент у Вас имеется <i><b>%d</b></i> жирафов.\n\n" +
+                "На данный момент у Вас имеется <i><b>%d</b></i> жирафов. <i><b>%d</b></i> из которых были купленны на стадии 'presale'.\n\n" +
                         "В случае, если количество жирафов отличается от ожидаемого, пожалуйста, свяжитесь с нами - @GhostOfGiraffe",
-                nfts.size()
+                nfts.size() + purchaseCount,
+                purchaseCount
         );
 
         telegramSenderService.send(

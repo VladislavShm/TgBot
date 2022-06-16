@@ -43,14 +43,15 @@ public class PurchaseService {
         linkParams.put("id", tgUser.getChatId());
         linkParams.put("n", quantity);
 
+        String params = tonLinkService.paramsToString(linkParams);
+
         return new Text("purchase.info")
                 .param(TonCoinUtils.toHumanReadable(price))
                 .param(quantity)
                 .param(TonCoinUtils.toHumanReadable(priceForAll))
                 .param(purchaseProperties.getWallet())
-                .param(tgUser.getChatId())
-                .param(quantity)
-                .param(tonLinkService.createLink(purchaseProperties.getWallet(), priceForAll, linkParams));
+                .param(params)
+                .param(tonLinkService.createLink(purchaseProperties.getWallet(), priceForAll, params));
     }
 
     public boolean isPurchaseTransaction(Transaction transaction) {
@@ -96,9 +97,13 @@ public class PurchaseService {
         sendPurchaseNotification(user);
     }
 
+    public Integer purchaseCount(TgUser user) {
+        return ObjectUtils.defaultIfNull(purchaseRepository.purchasesCount(user), 0);
+    }
+
     private void sendPurchaseNotification(TgUser user) {
         Integer userNftCount = nftService.findUserNftCount(user);
-        Integer purchaseCount = ObjectUtils.defaultIfNull(purchaseRepository.purchasesCount(user), 0);
+        Integer purchaseCount = purchaseCount(user);
 
         telegramSenderService.send(
                 new Text("notification.purchase", userNftCount + purchaseCount, purchaseCount),
