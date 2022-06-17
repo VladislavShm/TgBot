@@ -3,11 +3,10 @@ package com.giraffes.tgbot.processor;
 import com.giraffes.tgbot.entity.Location;
 import com.giraffes.tgbot.entity.Nft;
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.model.NftImage;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
+import com.giraffes.tgbot.service.NftImageAsyncSenderService;
 import com.giraffes.tgbot.service.NftService;
-import com.giraffes.tgbot.service.PCloudProvider;
 import com.giraffes.tgbot.service.PurchaseService;
 import com.giraffes.tgbot.service.TgUserService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
@@ -34,8 +33,8 @@ import static java.util.stream.Collectors.groupingBy;
 public class BaseLocationProcessor extends LocationProcessor {
     private static final Pattern ID_PATTERN = Pattern.compile("^\\d+$");
 
+    private final NftImageAsyncSenderService nftImageAsyncSenderService;
     private final PurchaseService purchaseService;
-    private final PCloudProvider pCloudProvider;
     private final TgUserService tgUserService;
     private final NftService nftService;
 
@@ -111,10 +110,10 @@ public class BaseLocationProcessor extends LocationProcessor {
 
         if (!nfts.isEmpty()) {
             Map<Integer, List<Nft>> nftByIndex = nfts.stream().collect(groupingBy(Nft::getIndex));
-            Map<Integer, NftImage> nftImageList = pCloudProvider.imageDataByIndexes(nftByIndex.keySet());
 
             long totalNftNumber = nftService.totalNftNumber();
-            nftImageList.forEach((index, nftImage) -> {
+            nftImageAsyncSenderService.sendAsync(nftByIndex.keySet(), (nftImage -> {
+                Integer index = nftImage.getIndex();
                 Nft nft = nftByIndex.get(index).stream().findFirst().orElseThrow();
                 int nftRank = nftService.getNftRank(nft);
                 BigDecimal rarity = nft.getRarity();
@@ -144,8 +143,7 @@ public class BaseLocationProcessor extends LocationProcessor {
                                         user
                                 )
                         );
-
-            });
+            }));
         }
     }
 

@@ -109,6 +109,12 @@ public class IncomingUpdateProcessor {
             log.info("Skipping Message update on group activity");
         } else if (chatType.filter("private"::equals).isPresent()) {
             TgUser user = tgUserService.authenticateUser(update);
+
+            String text = update.getMessage().getText();
+            if ("/start".equals(text)) {
+                user.setLocation(Location.BASE);
+            }
+
             Optional.ofNullable(processors.get(user.getLocation()))
                     .map((processor) -> processor.process(update, false))
                     .ifPresent((location -> {

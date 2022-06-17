@@ -11,6 +11,9 @@ logging:
         tgbot: ${LOGGING_APP_LEVEL}
 
 spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 10
   rabbitmq:
     host: localhost
     port: 5672
