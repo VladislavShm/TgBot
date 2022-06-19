@@ -113,6 +113,7 @@ public class IncomingUpdateProcessor {
             String text = update.getMessage().getText();
             if ("/start".equals(text)) {
                 user.setLocation(Location.BASE);
+                user.setLocationAttributes(null);
             }
 
             Optional.ofNullable(processors.get(user.getLocation()))

@@ -112,7 +112,7 @@ public class PurchaseService {
         );
     }
 
-    public Integer totalPurchasesCount() {
-        return ObjectUtils.defaultIfNull(purchaseRepository.totalPurchasesCount(), 0);
+    public Integer purchaseNftLeft() {
+        return purchaseProperties.getPresaleQuantity() - ObjectUtils.defaultIfNull(purchaseRepository.totalPurchasesCount(), 0);
     }
 }

@@ -14,4 +14,5 @@ public class TransactionDto {
     private String text;
     private String toWallet;
     private WalletType toWalletType;
+    private String hash;
 }

@@ -43,6 +43,9 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private WalletType toWalletType;
 
+    @Column
+    private String hash;
+
     @CreationTimestamp
     private LocalDateTime createDateTime;
 

@@ -30,8 +30,9 @@ public class PurchaseLocationProcessor extends LocationProcessor {
     @Override
     @SneakyThrows
     protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
+        Integer purchaseNftLeft = purchaseService.purchaseNftLeft();
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
-            sendDefaultMessage(user);
+            sendDefaultMessage(user, purchaseNftLeft);
             return Optional.empty();
         }
 
@@ -39,8 +40,7 @@ public class PurchaseLocationProcessor extends LocationProcessor {
             return Optional.of(Location.BASE);
         }
 
-        Integer totalPurchasesCount = purchaseService.totalPurchasesCount();
-        if (totalPurchasesCount >= purchaseProperties.getPresaleQuantity()) {
+        if (purchaseNftLeft <= 0) {
             telegramSenderService.send(
                     new Text("purchase.presale_sold", purchaseProperties.getLinkToMarketplace()),
                     new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
@@ -52,9 +52,9 @@ public class PurchaseLocationProcessor extends LocationProcessor {
 
         if (NUMBER_PATTERN.matcher(text).find()) {
             Integer quantity = Integer.valueOf(text);
-            if (totalPurchasesCount + quantity > purchaseProperties.getPresaleQuantity()) {
+            if (purchaseNftLeft < quantity) {
                 telegramSenderService.send(
-                        new Text("purchase.available_only", purchaseProperties.getPresaleQuantity()),
+                        new Text("purchase.available_only", purchaseNftLeft),
                         new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
                         user
                 );
@@ -70,9 +70,9 @@ public class PurchaseLocationProcessor extends LocationProcessor {
         return Optional.empty();
     }
 
-    private void sendDefaultMessage(TgUser user) {
+    private void sendDefaultMessage(TgUser user, Integer purchaseNftLeft) {
         telegramSenderService.send(
-                new Text("purchase.base_message", purchaseProperties.getLinkToMarketplace()),
+                new Text("purchase.base_message", purchaseNftLeft, purchaseProperties.getLinkToMarketplace()),
                 new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
                 user
         );

@@ -83,8 +83,9 @@ public class BaseLocationProcessor extends LocationProcessor {
     }
 
     private void sendBaseMessage(TgUser user) {
+        Integer purchaseNftLeft = purchaseService.purchaseNftLeft();
         telegramSenderService.send(
-                new Text("Giraffes Capital \uD83E\uDD92\uD83E\uDD92\uD83E\uDD92\n\nНаш канал (https://t.me/giraffe_capital)"),
+                new Text("base_location.base_message", purchaseNftLeft),
                 createBaseButtons(),
                 user
         );

@@ -11,9 +11,10 @@ import javax.transaction.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,12 +28,17 @@ public class TransactionService {
 
     @Transactional
     public void updateTransactions(List<TransactionDto> transactionDtos) {
-        Set<String> registeredTransactionIds = transactionRepository.findAllTransactionIds();
-        List<Transaction> newTransactions = transactionDtos.stream()
-                .filter(dto -> !registeredTransactionIds.contains(dto.getTransactionId()))
-                .map(this::createNewTransaction)
-                .flatMap(Optional::stream)
-                .collect(Collectors.toList());
+        Map<String, Transaction> transactionById = transactionRepository.findAll()
+                .stream().collect(Collectors.toMap(Transaction::getTransactionId, t -> t));
+
+        List<Transaction> newTransactions = new ArrayList<>();
+        for (TransactionDto dto : transactionDtos) {
+            Optional.ofNullable(transactionById.get(dto.getTransactionId()))
+                    .ifPresentOrElse(
+                            (transaction) -> updateTransactionTransaction(dto, transaction),
+                            () -> newTransactions.add(createNewTransaction(dto))
+                    );
+        }
 
         if (!newTransactions.isEmpty()) {
             log.debug("Registered {} new transactions", newTransactions.size());
@@ -58,17 +64,11 @@ public class TransactionService {
         }
     }
 
-    private Optional<Transaction> createNewTransaction(TransactionDto dto) {
+    private Transaction createNewTransaction(TransactionDto dto) {
         log.info("Registering new transaction: {}", dto.getTransactionId());
-        LocalDateTime datetime;
-        try {
-            datetime = Instant.ofEpochSecond(dto.getDatetime())
-                    .atZone(ZoneOffset.UTC)
-                    .toLocalDateTime();
-        } catch (Exception e) {
-            log.error("Can't parse incoming datetime {} for {}. Skipping transaction.", dto.getDatetime(), dto.getTransactionId(), e);
-            return Optional.empty();
-        }
+        LocalDateTime datetime = Instant.ofEpochSecond(dto.getDatetime())
+                .atZone(ZoneOffset.UTC)
+                .toLocalDateTime();
 
         Transaction transaction = new Transaction();
         transaction.setAmount(dto.getValue());
@@ -78,8 +78,16 @@ public class TransactionService {
         transaction.setText(dto.getText());
         transaction.setToWallet(dto.getToWallet());
         transaction.setToWalletType(dto.getToWalletType());
+        transaction.setHash(dto.getHash());
         transaction = transactionRepository.save(transaction);
         log.debug("Created transaction: {}", transaction);
-        return Optional.of(transaction);
+        return transaction;
+    }
+
+    private void updateTransactionTransaction(TransactionDto dto, Transaction transaction) {
+        // Update only fields that may be empty
+        transaction.setToWallet(dto.getToWallet());
+        transaction.setToWalletType(dto.getToWalletType());
+        transaction.setHash(dto.getHash());
     }
 }
