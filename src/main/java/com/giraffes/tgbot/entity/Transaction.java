@@ -51,6 +51,9 @@ public class Transaction {
     @Column
     private String hash;
 
+    @Column
+    private Long lt;
+
     @CreationTimestamp
     private LocalDateTime createDateTime;
 

@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -22,7 +23,8 @@ public class TransactionsUpdateScheduler {
     @Scheduled(fixedDelay = 5000, initialDelay = 2000)
     public void updateTransactions() {
         log.info("Updating transactions");
-        List<TransactionDto> transactions = tonProviderService.getTransactions();
+        Optional<Long> lastLt = transactionService.lastTransactionLt();
+        List<TransactionDto> transactions = tonProviderService.getTransactions(lastLt);
         transactionService.updateTransactions(transactions);
         log.info("Transactions have been updated");
     }
