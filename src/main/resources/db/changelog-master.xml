@@ -39,5 +39,6 @@
     <include file="db/changelog/add-rarity-to-nft.xml"/>
     <include file="db/changelog/return-purchase-table.xml"/>
     <include file="db/changelog/add-transaction-hash.xml"/>
+    <include file="db/changelog/add-sender-contract-info.xml"/>
 
 </databaseChangeLog>

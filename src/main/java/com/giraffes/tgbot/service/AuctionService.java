@@ -150,11 +150,11 @@ public class AuctionService {
     }
 
     public boolean isAuctionTransaction(Transaction transaction) {
-        return auctionRepository.findFinishedNotPaidByHighestBidAndUserWallet(transaction.getAmount(), transaction.getFromWallet()).isPresent();
+        return auctionRepository.findFinishedNotPaidByHighestBidAndUserWallet(transaction.getAmount(), transaction.getSender()).isPresent();
     }
 
     public void processAuctionPay(Transaction transaction) {
-        auctionRepository.findFinishedNotPaidByHighestBidAndUserWallet(transaction.getAmount(), transaction.getFromWallet())
+        auctionRepository.findFinishedNotPaidByHighestBidAndUserWallet(transaction.getAmount(), transaction.getSender())
                 .ifPresent(auction -> auction.setCoinsPaid(true));
     }
 }

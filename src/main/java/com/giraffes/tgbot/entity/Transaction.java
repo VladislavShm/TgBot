@@ -1,5 +1,6 @@
 package com.giraffes.tgbot.entity;
 
+import com.giraffes.tgbot.model.ContractType;
 import com.giraffes.tgbot.model.WalletType;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,7 +23,11 @@ public class Transaction {
     private Long id;
 
     @Column
-    private String fromWallet;
+    private String sender;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private ContractType senderType;
 
     @Column
     private LocalDateTime datetime;

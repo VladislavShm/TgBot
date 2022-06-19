@@ -73,12 +73,13 @@ public class TransactionService {
         Transaction transaction = new Transaction();
         transaction.setAmount(dto.getValue());
         transaction.setDatetime(datetime);
-        transaction.setFromWallet(dto.getSender());
+        transaction.setSender(dto.getSender());
         transaction.setTransactionId(dto.getTransactionId());
         transaction.setText(dto.getText());
         transaction.setToWallet(dto.getToWallet());
         transaction.setToWalletType(dto.getToWalletType());
         transaction.setHash(dto.getHash());
+        transaction.setSenderType(dto.getSenderType());
         transaction = transactionRepository.save(transaction);
         log.debug("Created transaction: {}", transaction);
         return transaction;
@@ -89,5 +90,6 @@ public class TransactionService {
         transaction.setToWallet(dto.getToWallet());
         transaction.setToWalletType(dto.getToWalletType());
         transaction.setHash(dto.getHash());
+        transaction.setSenderType(dto.getSenderType());
     }
 }

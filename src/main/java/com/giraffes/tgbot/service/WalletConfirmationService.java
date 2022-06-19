@@ -23,11 +23,11 @@ public class WalletConfirmationService {
 
     public boolean isWalletConfirmation(Transaction transaction) {
         return Objects.equals(transaction.getAmount(), userWalletProperties.getConfirmationSum()) &&
-                !tgUserService.findAllByWalletNotConfirmed(transaction.getFromWallet()).isEmpty();
+                !tgUserService.findAllByWalletNotConfirmed(transaction.getSender()).isEmpty();
     }
 
     public void confirmWallet(Transaction transaction) {
-        for (TgUser user : tgUserService.findAllByWalletNotConfirmed(transaction.getFromWallet())) {
+        for (TgUser user : tgUserService.findAllByWalletNotConfirmed(transaction.getSender())) {
             try {
                 user.setWalletConfirmed(true);
                 sendNotification(user);
