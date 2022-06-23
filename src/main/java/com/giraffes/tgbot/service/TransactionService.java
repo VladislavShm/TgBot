@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -97,5 +98,9 @@ public class TransactionService {
 
     public Optional<Long> lastTransactionLt() {
         return transactionRepository.findFirstByOrderByDatetimeDesc().map(Transaction::getLt);
+    }
+
+    public BigInteger sumOfRoyalties() {
+        return transactionRepository.sumOfRoyalties().orElse(BigInteger.ZERO);
     }
 }

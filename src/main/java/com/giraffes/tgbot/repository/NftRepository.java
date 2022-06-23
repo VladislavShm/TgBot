@@ -26,4 +26,7 @@ public interface NftRepository extends JpaRepository<Nft, Long> {
 
     @Query("select count(nft.id) from Nft nft where nft.owner = :owner")
     int findCountByOwner(String owner);
+
+    @Query("select count(nft.id) from Nft nft where nft.owner is not null")
+    Optional<Integer> totalNftNumberWithOwner();
 }

@@ -8,6 +8,7 @@ import com.giraffes.tgbot.model.internal.telegram.Text;
 import com.giraffes.tgbot.service.NftImageAsyncSenderService;
 import com.giraffes.tgbot.service.NftService;
 import com.giraffes.tgbot.service.PurchaseService;
+import com.giraffes.tgbot.service.RoyaltyService;
 import com.giraffes.tgbot.service.TgUserService;
 import com.giraffes.tgbot.utils.TonCoinUtils;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class BaseLocationProcessor extends LocationProcessor {
 
     private final NftImageAsyncSenderService nftImageAsyncSenderService;
     private final PurchaseService purchaseService;
+    private final RoyaltyService royaltyService;
     private final TgUserService tgUserService;
     private final NftService nftService;
 
@@ -70,6 +72,9 @@ public class BaseLocationProcessor extends LocationProcessor {
                 return getLocation();
             case MY_GIRAFFES_BUTTON:
                 sendMyGiraffesInfo(user);
+                return getLocation();
+            case ROYALTY_BUTTON:
+                sendRoyaltyInfo(user);
                 return getLocation();
             case AUCTION_BUTTON:
                 return Location.AUCTIONS_BROWSE;
@@ -233,12 +238,19 @@ public class BaseLocationProcessor extends LocationProcessor {
                 .line(
                         BaseLocationButton.BUY_BUTTON,
                         BaseLocationButton.INVITE_INFO_BUTTON,
-                        BaseLocationButton.MY_GIRAFFES_BUTTON
+                        BaseLocationButton.ABOUT_COLLECTION_BUTTON
+                )
+                .line(
+                        BaseLocationButton.MY_GIRAFFES_BUTTON,
+                        BaseLocationButton.ROYALTY_BUTTON
                 )
                 .line(
                         BaseLocationButton.AUCTION_BUTTON,
-                        BaseLocationButton.ABOUT_COLLECTION_BUTTON,
                         BaseLocationButton.SETTINGS_BUTTON
                 );
+    }
+
+    private void sendRoyaltyInfo(TgUser user) {
+        telegramSenderService.send(royaltyService.createInfoMessage(user), createBaseButtons(), user);
     }
 }

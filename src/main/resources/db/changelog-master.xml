@@ -41,5 +41,6 @@
     <include file="db/changelog/add-transaction-hash.xml"/>
     <include file="db/changelog/add-sender-contract-info.xml"/>
     <include file="db/changelog/add-lt.xml"/>
+    <include file="db/changelog/create-royalty-table.xml"/>
 
 </databaseChangeLog>

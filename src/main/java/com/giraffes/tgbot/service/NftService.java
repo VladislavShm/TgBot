@@ -91,4 +91,8 @@ public class NftService {
     public Integer findUserNftCount(TgUser tgUser) {
         return ObjectUtils.defaultIfNull(nftRepository.findCountByOwner(tgUser.getWallet()), 0);
     }
+
+    public Integer totalNftNumberWithOwner() {
+        return nftRepository.totalNftNumberWithOwner().orElse(0);
+    }
 }
