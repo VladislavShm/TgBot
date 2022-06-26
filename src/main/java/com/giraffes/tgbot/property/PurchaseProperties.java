@@ -14,6 +14,9 @@ import java.math.BigInteger;
 @Configuration
 @ConfigurationProperties("purchase")
 public class PurchaseProperties {
+    @NotNull
+    private boolean enabled;
+
     @NotBlank
     private String wallet;
 

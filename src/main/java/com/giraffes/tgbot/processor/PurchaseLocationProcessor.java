@@ -30,9 +30,12 @@ public class PurchaseLocationProcessor extends LocationProcessor {
     @Override
     @SneakyThrows
     protected Optional<Location> processText(TgUser user, String text, boolean redirected) {
-        Integer purchaseNftLeft = purchaseService.purchaseNftLeft();
         if (redirected || messageToButtonTransformer.determineButton(text, ButtonName.OkButton.class).isPresent()) {
-            sendDefaultMessage(user, purchaseNftLeft);
+            if (purchaseProperties.isEnabled()) {
+                sendBasePurchaseMessage(user);
+            } else {
+                sendPresaleFinished(user);
+            }
             return Optional.empty();
         }
 
@@ -40,6 +43,12 @@ public class PurchaseLocationProcessor extends LocationProcessor {
             return Optional.of(Location.BASE);
         }
 
+        if (!purchaseProperties.isEnabled()) {
+            sendPresaleFinished(user);
+            return Optional.empty();
+        }
+
+        Integer purchaseNftLeft = purchaseService.purchaseNftLeft();
         if (purchaseNftLeft <= 0) {
             telegramSenderService.send(
                     new Text("purchase.presale_sold", purchaseProperties.getLinkToMarketplace()),
@@ -70,9 +79,18 @@ public class PurchaseLocationProcessor extends LocationProcessor {
         return Optional.empty();
     }
 
-    private void sendDefaultMessage(TgUser user, Integer purchaseNftLeft) {
+    private void sendBasePurchaseMessage(TgUser user) {
+        Integer purchaseNftLeft = purchaseService.purchaseNftLeft();
         telegramSenderService.send(
                 new Text("purchase.base_message", purchaseNftLeft, purchaseProperties.getLinkToMarketplace()),
+                new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
+                user
+        );
+    }
+
+    private void sendPresaleFinished(TgUser user) {
+        telegramSenderService.send(
+                new Text("purchase.presale_finished"),
                 new Keyboard(ButtonName.BackCancelButton.BACK_BUTTON),
                 user
         );

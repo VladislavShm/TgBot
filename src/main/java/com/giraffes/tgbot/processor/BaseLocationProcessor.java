@@ -5,6 +5,7 @@ import com.giraffes.tgbot.entity.Nft;
 import com.giraffes.tgbot.entity.TgUser;
 import com.giraffes.tgbot.model.internal.telegram.Keyboard;
 import com.giraffes.tgbot.model.internal.telegram.Text;
+import com.giraffes.tgbot.property.PurchaseProperties;
 import com.giraffes.tgbot.service.NftImageAsyncSenderService;
 import com.giraffes.tgbot.service.NftService;
 import com.giraffes.tgbot.service.PurchaseService;
@@ -35,6 +36,7 @@ public class BaseLocationProcessor extends LocationProcessor {
     private static final Pattern ID_PATTERN = Pattern.compile("^\\d+$");
 
     private final NftImageAsyncSenderService nftImageAsyncSenderService;
+    private final PurchaseProperties purchaseProperties;
     private final PurchaseService purchaseService;
     private final RoyaltyService royaltyService;
     private final TgUserService tgUserService;
@@ -88,12 +90,20 @@ public class BaseLocationProcessor extends LocationProcessor {
     }
 
     private void sendBaseMessage(TgUser user) {
-        Integer purchaseNftLeft = purchaseService.purchaseNftLeft();
-        telegramSenderService.send(
-                new Text("base_location.base_message", purchaseNftLeft),
-                createBaseButtons(),
-                user
-        );
+        if (purchaseProperties.isEnabled()) {
+            Integer purchaseNftLeft = purchaseService.purchaseNftLeft();
+            telegramSenderService.send(
+                    new Text("base_location.base_message_presale", purchaseNftLeft),
+                    createBaseButtons(),
+                    user
+            );
+        } else {
+            telegramSenderService.send(
+                    new Text("base_location.base_message"),
+                    createBaseButtons(),
+                    user
+            );
+        }
     }
 
     @SneakyThrows

@@ -35,6 +35,7 @@ auction:
   wallet: ${COLLECTION_ADDRESS}
 
 purchase:
+  enabled: false
   price: ${BASE_NFT_PRICE}
   wallet: ${COLLECTION_ADDRESS}
   presaleQuantity: ${PRESALE_NFT_QUANTITY}
