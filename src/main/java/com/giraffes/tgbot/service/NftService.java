@@ -2,7 +2,6 @@ package com.giraffes.tgbot.service;
 
 import com.giraffes.tgbot.entity.Nft;
 import com.giraffes.tgbot.entity.TgUser;
-import com.giraffes.tgbot.model.tonprovider.NftData;
 import com.giraffes.tgbot.repository.NftRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -22,7 +20,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NftService {
     private final NftRepository nftRepository;
-    private final AmqpSender amqpSender;
 
     public List<Nft> getUserNFTs(TgUser tgUser) {
         return StringUtils.isNotBlank(tgUser.getWallet())
@@ -30,33 +27,11 @@ public class NftService {
                 : Collections.emptyList();
     }
 
-    public void createOrUpdateNfts(NftData nftData) {
-        nftRepository.findByIndex(nftData.getIndex())
-                .ifPresentOrElse(
-                        nft -> updateNftOwnerIfNecessary(nftData, nft),
-                        () -> createNewNft(nftData)
-                );
-    }
-
-    private void updateNftOwnerIfNecessary(NftData nftData, Nft nft) {
-        if (!StringUtils.equals(nft.getOwner(), nftData.getOwner())) {
-            log.debug("NFT owner has been changed {} -> {}, value {} -> {}. Index: {}", nft.getOwner(), nftData.getOwner(), nft.getLastValue(), nftData.getValue(), nft.getIndex());
-            nft.setOwner(nftData.getOwner());
-            nft.setLastValue(nftData.getValue());
-            amqpSender.sendNftOwnerChanged(nft.getId());
-        } else if (!Objects.deepEquals(nftData.getValue(), nft.getLastValue())) {
-            log.debug("NFT value has been changed value: {} -> {}. Index: {}", nft.getLastValue(), nftData.getValue(), nft.getIndex());
-            nft.setLastValue(nftData.getValue());
-        }
-    }
-
-    private void createNewNft(NftData nftData) {
-        log.debug("Creating new NFT: {}", nftData);
+    public void createNewNft(int index, String nftAddress) {
+        log.debug("Creating new NFT: {}, {}", index, nftAddress);
         Nft newNft = new Nft();
-        newNft.setAddress(nftData.getAddress());
-        newNft.setIndex(nftData.getIndex());
-        newNft.setOwner(nftData.getOwner());
-        newNft.setLastValue(nftData.getValue());
+        newNft.setAddress(nftAddress);
+        newNft.setIndex(index);
         nftRepository.save(newNft);
     }
 

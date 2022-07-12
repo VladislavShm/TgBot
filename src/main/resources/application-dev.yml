@@ -27,6 +27,3 @@ user-wallet:
 
 ton-provider:
   url: http://localhost:3001
-
-nft-data-synchronization-scheduler:
-  enabled: false

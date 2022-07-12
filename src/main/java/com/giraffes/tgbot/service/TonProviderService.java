@@ -1,9 +1,9 @@
 package com.giraffes.tgbot.service;
 
-import com.giraffes.tgbot.model.tonprovider.NftData;
 import com.giraffes.tgbot.model.tonprovider.TransactionDto;
 import com.giraffes.tgbot.model.tonprovider.WalletInfoDto;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,9 +14,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class TonProviderService {
-    private final RestTemplate restTemplate;
+    @Autowired
+    @Qualifier("tonProviderRestTemplate")
+    private RestTemplate restTemplate;
 
     public WalletInfoDto getWalletInfo(String wallet) {
         return restTemplate.getForObject("/wallet-info/" + wallet, WalletInfoDto.class);
@@ -25,11 +26,6 @@ public class TonProviderService {
     public List<TransactionDto> getTransactions(Optional<Long> lastLt) {
         String url = lastLt.map(aLong -> "/transactions?lastLt=" + aLong).orElse("/transactions");
         return Arrays.stream(Objects.requireNonNull(restTemplate.getForObject(url, TransactionDto[].class)))
-                .collect(Collectors.toList());
-    }
-
-    public List<NftData> getNftData(Integer startIndex) {
-        return Arrays.stream(Objects.requireNonNull(restTemplate.getForObject("/nft-data?startIndex=" + startIndex, NftData[].class)))
                 .collect(Collectors.toList());
     }
 }

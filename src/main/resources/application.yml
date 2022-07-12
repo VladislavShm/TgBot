@@ -56,3 +56,13 @@ nft-owner-changed:
   notification:
     enabled: ${NFT_OWNER_CHANGED_NOTIF_ENABLED:true}
 
+ton:
+  url: https://toncenter.com/api/v2/
+  api-key: e60913e7c74984f30a3a5216dc54d52d83deb106d2b4e324eb42bfe7cceacda9
+
+nft-data-synchronization-scheduler:
+  enabled: ${NFT_DATA_SYNC_ENABLED:true}
+
+nft-collection:
+  address: EQBj0sX-_qLFMPEx8KFZWX_aukEzjV7DR_Zai0I-NZ_mnzv3
+
