@@ -6,13 +6,13 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
-    <changeSet id="1649597296166-1" author="giraffe">
+    <changeSet id="1649597296166-1" author="author">
         <addColumn tableName="purchase">
             <column name="number" type="INT"/>
         </addColumn>
     </changeSet>
 
-    <changeSet id="1649597296166-2" author="giraffe">
+    <changeSet id="1649597296166-2" author="author">
         <sql>
             update purchase set number = 1 where approved = true
         </sql>

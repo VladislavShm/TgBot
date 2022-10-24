@@ -5,11 +5,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
-    <changeSet id="1650256020544-1" author="giraffe">
+    <changeSet id="1650256020544-1" author="author">
         <dropColumn columnName="price_reduction_minutes" tableName="auction"/>
     </changeSet>
 
-    <changeSet id="1650256020544-2" author="giraffe">
+    <changeSet id="1650256020544-2" author="author">
         <addColumn tableName="auction">
             <column name="price_reduction_minutes" type="DECIMAL">
                 <constraints nullable="false" validateNullable="true"/>
@@ -17,13 +17,13 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="1650256020544-3" author="giraffe">
+    <changeSet id="1650256020544-3" author="author">
         <addColumn tableName="auction">
             <column name="minimal_step" type="DECIMAL"/>
         </addColumn>
     </changeSet>
 
-    <changeSet id="1650256020544-4" author="giraffe">
+    <changeSet id="1650256020544-4" author="author">
         <addNotNullConstraint columnName="minimal_step" tableName="auction"/>
     </changeSet>
 

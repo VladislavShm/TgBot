@@ -7,8 +7,7 @@ server:
 logging:
   level:
     com:
-      giraffes:
-        tgbot: ${LOGGING_APP_LEVEL}
+      tgbot: ${LOGGING_APP_LEVEL}
 
 spring:
   datasource:
@@ -39,7 +38,7 @@ purchase:
   price: ${BASE_NFT_PRICE}
   wallet: ${COLLECTION_ADDRESS}
   presaleQuantity: ${PRESALE_NFT_QUANTITY}
-  linkToMarketplace: ${LINK_TO_MARKETPLACE:https://beta.disintar.io/collection/UQBj0sX-_qLFMPEx8KFZWX_aukEzjV7DR_Zai0I-NZ_mn2Yy}
+  linkToMarketplace: ${LINK_TO_MARKETPLACE}
 
 user-wallet:
   confirmation-sum: ${CONFIRMATION_WALLET_SUM}
@@ -50,7 +49,7 @@ ton-provider:
 
 p-cloud:
   api-host: ${P_CLOUD_API_HOST:eapi.pcloud.com}
-  access-token: ${P_CLOUD_ACCESS_TOKEN:LSDzZ5QLjde4LwKSZiufur7Z59j9khCj2gyw3Jb7c6EzCjFFFt0V}
+  access-token: ${P_CLOUD_ACCESS_TOKEN}
 
 nft-owner-changed:
   notification:
@@ -58,11 +57,11 @@ nft-owner-changed:
 
 ton:
   url: https://toncenter.com/api/v2/
-  api-key: e60913e7c74984f30a3a5216dc54d52d83deb106d2b4e324eb42bfe7cceacda9
+  api-key:
 
 nft-data-synchronization-scheduler:
   enabled: ${NFT_DATA_SYNC_ENABLED:true}
 
 nft-collection:
-  address: EQBj0sX-_qLFMPEx8KFZWX_aukEzjV7DR_Zai0I-NZ_mnzv3
+  address:
 

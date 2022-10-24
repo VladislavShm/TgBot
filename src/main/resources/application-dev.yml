@@ -1,29 +1,31 @@
 datasource:
-  url: jdbc:postgresql://localhost:5432/giraffes
+  url: jdbc:postgresql://localhost:5432/postgres
   username: postgres
   password: postgres
 
 tg-bot:
-  botUserName: grf_nft_test_bot
-  botToken: 5189688729:AAFN0jqTcioO5PendAKAilLdLK66VwUiSS8
+  botUserName:
+  botToken:
 
 auction:
-  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  wallet:
 
 purchase:
-  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
-  price: 500000000
-  presaleQuantity: 100
+  wallet:
+  price:
+  presaleQuantity:
 
 logging:
   level:
     com:
-      giraffes:
-        tgbot: TRACE
+      tgbot: TRACE
 
 user-wallet:
-  confirmation-sum: 10000000
-  confirmation-wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  confirmation-sum:
+  confirmation-wallet:
 
 ton-provider:
   url: http://localhost:3001
+
+transactions-update-scheduler:
+  enabled: false

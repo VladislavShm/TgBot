@@ -5,18 +5,18 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
-    <changeSet id="1650818633997-1" author="giraffe">
+    <changeSet id="1650818633997-1" author="author">
         <addColumn tableName="auction">
             <column name="minutes_to_outbid" type="INT"/>
         </addColumn>
     </changeSet>
-    <changeSet id="1650818633997-2" author="giraffe">
+    <changeSet id="1650818633997-2" author="author">
         <addNotNullConstraint columnName="minutes_to_outbid" tableName="auction"/>
     </changeSet>
-    <changeSet id="1650818633997-3" author="giraffe">
+    <changeSet id="1650818633997-3" author="author">
         <addUniqueConstraint columnNames="name" constraintName="uc_auction_name" tableName="auction"/>
     </changeSet>
-    <changeSet id="1650818633997-4" author="giraffe">
+    <changeSet id="1650818633997-4" author="author">
         <addUniqueConstraint columnNames="order_number" constraintName="uc_auction_ordernumber" tableName="auction"/>
     </changeSet>
 

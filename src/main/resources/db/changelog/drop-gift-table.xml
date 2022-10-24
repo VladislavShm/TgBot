@@ -5,10 +5,10 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
-    <changeSet id="1653323303568-3" author="giraffe">
+    <changeSet id="1653323303568-3" author="author">
         <dropForeignKeyConstraint baseTableName="gift" constraintName="fk_gift_on_user"/>
     </changeSet>
-    <changeSet id="1653323303568-6" author="giraffe">
+    <changeSet id="1653323303568-6" author="author">
         <dropTable cascadeConstraints="true" tableName="gift"/>
     </changeSet>
 

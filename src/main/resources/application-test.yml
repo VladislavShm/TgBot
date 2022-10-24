@@ -9,21 +9,20 @@ tg-bot:
   botToken: botTokenMock
 
 auction:
-  wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  wallet:
 
 logging:
   level:
     com:
-      giraffes:
-        tgbot: INFO
+      tgbot: INFO
 
 spring:
   liquibase:
     change-log: classpath:db/changelog-master.xml
 
 user-wallet:
-  confirmation-sum: 10000000
-  confirmation-wallet: EQCijPA3WpE8P1rdYScwCEUslglwiJjTJUid0LM6TYFtRlnE
+  confirmation-sum:
+  confirmation-wallet:
 
 ton-provider:
   url: http://localhost:3001

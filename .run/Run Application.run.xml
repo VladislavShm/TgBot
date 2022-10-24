@@ -14,7 +14,7 @@
         <ENTRY IS_ENABLED="true" PARSER="runconfig" />
       </ENTRIES>
     </extension>
-    <option name="SPRING_BOOT_MAIN_CLASS" value="com.giraffes.tgbot.TgBotApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.tgbot.TgBotApplication" />
     <option name="ACTIVE_PROFILES" value="dev" />
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <method v="2">

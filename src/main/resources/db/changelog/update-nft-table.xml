@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
-    <changeSet id="1653119521549-1" author="giraffe">
+    <changeSet id="1653119521549-1" author="author">
         <addColumn tableName="nft">
             <column name="address" type="VARCHAR(255)"/>
             <column name="index" type="INT"/>
@@ -13,11 +13,11 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="1653119521549-4" author="giraffe">
+    <changeSet id="1653119521549-4" author="author">
         <dropForeignKeyConstraint baseTableName="nft" constraintName="fk_nft_on_user"/>
     </changeSet>
 
-    <changeSet id="1653119521549-5" author="giraffe">
+    <changeSet id="1653119521549-5" author="author">
         <dropColumn columnName="link" tableName="nft"/>
 
         <dropColumn columnName="nft_id" tableName="nft"/>
@@ -25,7 +25,7 @@
         <dropColumn columnName="user_id" tableName="nft"/>
     </changeSet>
 
-    <changeSet id="1653119521549-6" author="giraffe">
+    <changeSet id="1653119521549-6" author="author">
         <addUniqueConstraint columnNames="index"
                              constraintName="uc_nft_index"
                              tableName="nft"/>

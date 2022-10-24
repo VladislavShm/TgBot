@@ -5,13 +5,13 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
-    <changeSet id="1653323303568-4" author="giraffe">
+    <changeSet id="1653323303568-4" author="author">
         <dropForeignKeyConstraint baseTableName="purchase" constraintName="fk_purchase_on_transaction"/>
     </changeSet>
-    <changeSet id="1653323303568-5" author="giraffe">
+    <changeSet id="1653323303568-5" author="author">
         <dropForeignKeyConstraint baseTableName="purchase" constraintName="fk_purchase_on_user"/>
     </changeSet>
-    <changeSet id="1653323303568-7" author="giraffe">
+    <changeSet id="1653323303568-7" author="author">
         <dropTable cascadeConstraints="true" tableName="purchase"/>
     </changeSet>
 
